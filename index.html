@@ -1,0 +1,1780 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MikroTik RouterOS v7 — Архитектурный Конфигуратор</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #0b1120;
+      color: #e2e8f0;
+    }
+    code, pre, .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .custom-scroll::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+    .tab-active {
+      background-color: #1e293b;
+      border-color: #38bdf8;
+      color: #38bdf8;
+    }
+    .form-input {
+      background-color: #0f172a;
+      border: 1px solid #334155;
+      color: #f1f5f9;
+      border-radius: 0.5rem;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.875rem;
+      width: 100%;
+      transition: all 0.15s;
+    }
+    .form-input:focus {
+      outline: none;
+      border-color: #38bdf8;
+      box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Header -->
+  <header class="bg-[#0f172a] border-b border-slate-800 sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="bg-gradient-to-br from-cyan-500 to-blue-600 p-2 rounded-xl text-white shadow-lg shadow-cyan-500/20">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <rect x="2" y="2" width="20" height="8" rx="2" ry="2" stroke-width="2"></rect>
+            <rect x="2" y="14" width="20" height="8" rx="2" ry="2" stroke-width="2"></rect>
+            <circle cx="6" cy="6" r="1" fill="currentColor"></circle>
+            <circle cx="6" cy="18" r="1" fill="currentColor"></circle>
+            <path d="M10 6h8M10 18h8" stroke-width="2"></path>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold text-white tracking-tight flex items-center gap-2">
+            MikroTik Architect Studio
+            <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-cyan-950 text-cyan-400 border border-cyan-800">RouterOS v7</span>
+          </h1>
+          <p class="text-xs text-slate-400">Архитектурный конфигуратор по стандартам vasilevkirill.ru и MikroTik Best Practices</p>
+        </div>
+      </div>
+
+      <!-- Action buttons -->
+      <div class="flex items-center gap-2">
+        <button onclick="applyPreset('office')" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700 transition">
+          🏢 Пресет: Офис
+        </button>
+        <button onclick="applyPreset('paranoid')" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700 transition">
+          🔒 Пресет: Hardened/Paranoid
+        </button>
+        <button onclick="copyScript()" class="text-xs bg-cyan-600 hover:bg-cyan-500 text-white font-medium px-4 py-1.5 rounded-lg shadow-sm transition flex items-center gap-1.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+          Скопировать .rsc
+        </button>
+        <button onclick="downloadScript()" class="text-xs bg-blue-600 hover:bg-blue-500 text-white font-medium px-4 py-1.5 rounded-lg shadow-sm transition flex items-center gap-1.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+          Скачать
+        </button>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex space-x-1 border-t border-slate-800/80 pt-1">
+      <button onclick="switchTab('firewall')" id="tab-firewall" class="tab-btn px-4 py-2.5 text-xs font-semibold rounded-t-lg border-b-2 flex items-center gap-2 tab-active">
+        <span class="text-base">🛡️</span> Модуль 1: Firewall
+      </button>
+      <button onclick="switchTab('wireguard')" id="tab-wireguard" class="tab-btn px-4 py-2.5 text-xs font-semibold rounded-t-lg border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2">
+        <span class="text-base">⚡</span> Модуль 2: WireGuard
+      </button>
+      <button onclick="switchTab('telegram')" id="tab-telegram" class="tab-btn px-4 py-2.5 text-xs font-semibold rounded-t-lg border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2">
+        <span class="text-base">🤖</span> Модуль 3: Telegram Alerts
+      </button>
+      <button onclick="switchTab('defense')" id="tab-defense" class="tab-btn px-4 py-2.5 text-xs font-semibold rounded-t-lg border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2">
+        <span class="text-base">🛑</span> Модуль 4: Brute-Force & Scans
+      </button>
+      <button onclick="switchTab('system')" id="tab-system" class="tab-btn px-4 py-2.5 text-xs font-semibold rounded-t-lg border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2">
+        <span class="text-base">🔒</span> Модуль 5: Харденинг & DoH
+      </button>
+    </div>
+
+    <!-- Module Inclusion Bar -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex flex-wrap items-center justify-between gap-3 border-t border-slate-800/80 bg-slate-900/50 text-xs">
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="text-slate-400 font-semibold">Модули в конфигурации:</span>
+        <label class="flex items-center gap-1.5 cursor-pointer bg-slate-800/90 hover:bg-slate-800 px-2.5 py-1 rounded-md border border-slate-700/70 transition text-slate-200">
+          <input type="checkbox" id="mod_enable_firewall" checked onchange="updateScript()" class="rounded text-cyan-500 focus:ring-0">
+          <span class="font-medium">🛡️ 1. Firewall</span>
+        </label>
+        <label class="flex items-center gap-1.5 cursor-pointer bg-slate-800/90 hover:bg-slate-800 px-2.5 py-1 rounded-md border border-slate-700/70 transition text-slate-200">
+          <input type="checkbox" id="mod_enable_wireguard" checked onchange="updateScript()" class="rounded text-cyan-500 focus:ring-0">
+          <span class="font-medium">⚡ 2. WireGuard</span>
+        </label>
+        <label class="flex items-center gap-1.5 cursor-pointer bg-slate-800/90 hover:bg-slate-800 px-2.5 py-1 rounded-md border border-slate-700/70 transition text-slate-200">
+          <input type="checkbox" id="mod_enable_telegram" checked onchange="updateScript()" class="rounded text-cyan-500 focus:ring-0">
+          <span class="font-medium">🤖 3. Telegram</span>
+        </label>
+        <label class="flex items-center gap-1.5 cursor-pointer bg-slate-800/90 hover:bg-slate-800 px-2.5 py-1 rounded-md border border-slate-700/70 transition text-slate-200">
+          <input type="checkbox" id="mod_enable_defense" checked onchange="updateScript()" class="rounded text-cyan-500 focus:ring-0">
+          <span class="font-medium">🛑 4. Defense</span>
+        </label>
+        <label class="flex items-center gap-1.5 cursor-pointer bg-slate-800/90 hover:bg-slate-800 px-2.5 py-1 rounded-md border border-slate-700/70 transition text-slate-200">
+          <input type="checkbox" id="mod_enable_system" checked onchange="updateScript()" class="rounded text-cyan-500 focus:ring-0">
+          <span class="font-medium">🔒 5. Харденинг & DoH</span>
+        </label>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <button onclick="setModulesMode('all')" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded border border-slate-700 transition">Все</button>
+        <button onclick="setModulesMode('only_current')" class="text-[11px] bg-cyan-950/80 hover:bg-cyan-900 text-cyan-300 px-2.5 py-1 rounded border border-cyan-800 transition">Только активная вкладка</button>
+        <button onclick="setModulesMode('none')" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-400 px-2.5 py-1 rounded border border-slate-700 transition">Снять все</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Layout -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    <!-- Left Controls Panel (7 Cols) -->
+    <div class="lg:col-span-7 space-y-6">
+
+      <!-- ============================================== -->
+      <!-- TAB 1: FIREWALL MODULE -->
+      <!-- ============================================== -->
+      <div id="content-firewall" class="space-y-5">
+        
+        <!-- Info Banner -->
+        <div class="bg-gradient-to-r from-blue-950/60 to-slate-900 border border-blue-900/50 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs leading-relaxed text-slate-300">
+          <div class="flex gap-3">
+            <div class="text-blue-400 text-lg">💡</div>
+            <div>
+              <strong class="text-blue-300 font-semibold">Архитектура нормального закрытого файрвола (vasilevkirill.ru):</strong>
+              Вся входящая фильтрация разделена на кастомные цепочки (<code class="text-cyan-300">ISP-Input</code>, <code class="text-cyan-300">ISP-Input-Allow</code>, <code class="text-cyan-300">Local-Input</code>). Любые порты открываются только в терминальной цепочке, исключая конфликты порядка правил.
+            </div>
+          </div>
+          <button onclick="selectOnlyModule('firewall')" class="shrink-0 text-[11px] bg-blue-900/60 hover:bg-blue-800 text-cyan-300 px-3 py-1.5 rounded-lg border border-blue-700/80 transition flex items-center gap-1.5 whitespace-nowrap">
+            ⚡ Только этот модуль
+          </button>
+        </div>
+
+        <!-- Section 1: Интерфейсные списки -->
+        <div class="bg-[#131c2e] border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
+          <h2 class="text-sm font-bold text-white flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-cyan-400"></span> 1. Интерфейсные списки и зоны доверия
+          </h2>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Интерфейсы WAN (ISP)</label>
+              <input type="text" id="fw_isp_interfaces" value="ether1" class="form-input" oninput="updateScript()">
+              <span class="text-[10px] text-slate-500">Через запятую (ether1, pppoe-out1)</span>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Интерфейсы LAN (Local)</label>
+              <input type="text" id="fw_local_interfaces" value="bridge" class="form-input" oninput="updateScript()">
+              <span class="text-[10px] text-slate-500">bridge, vlan-users, ether2</span>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Management Интерфейс</label>
+              <input type="text" id="fw_mgmt_interface" value="bridge" class="form-input" oninput="updateScript()">
+              <span class="text-[10px] text-slate-500">Интерфейс для администрирования</span>
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">Доверенные подсети админов (TRUSTED-MGMT Address List)</label>
+            <input type="text" id="fw_trusted_subnets" value="192.168.88.0/24" class="form-input" oninput="updateScript()">
+            <span class="text-[10px] text-slate-500">Только эти IP смогут подключаться к Winbox/SSH роутера</span>
+          </div>
+        </div>
+
+        <!-- Section 2: RAW Таблица -->
+        <div class="bg-[#131c2e] border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <h2 class="text-sm font-bold text-white flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-cyan-400"></span> 2. RAW Таблица (Защита до conntrack)
+            </h2>
+            <span class="text-[11px] px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800">Рекомендовано</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <label class="flex items-start gap-2.5 p-3 rounded-lg bg-slate-900/60 border border-slate-800/80 cursor-pointer hover:border-slate-700">
+              <input type="checkbox" id="fw_raw_tcp_flags" checked onchange="updateScript()" class="mt-0.5 rounded text-cyan-500 focus:ring-0">
+              <div>
+                <span class="font-medium text-slate-200">Дроп аномальных TCP-флагов</span>
+                <p class="text-[11px] text-slate-400 mt-0.5">Сброс TCP NULL, Xmas, SYN-FIN, FIN-RST атак до создания соединений</p>
+              </div>
+            </label>
+            <label class="flex items-start gap-2.5 p-3 rounded-lg bg-slate-900/60 border border-slate-800/80 cursor-pointer hover:border-slate-700">
+              <input type="checkbox" id="fw_raw_blacklist" checked onchange="updateScript()" class="mt-0.5 rounded text-cyan-500 focus:ring-0">
+              <div>
+                <span class="font-medium text-slate-200">RAW Blacklist Drop</span>
+                <p class="text-[11px] text-slate-400 mt-0.5">Мгновенный сброс заблокированных хостов без нагрузки на RAM</p>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Section 3: Входящий трафик (Input Chain) -->
+        <div class="bg-[#131c2e] border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
+          <h2 class="text-sm font-bold text-white flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-cyan-400"></span> 3. Разрешенные службы из интернета (ISP-Input-Allow)
+          </h2>
+          <div class="space-y-3">
+            <div class="flex items-center justify-between p-3 rounded-lg bg-slate-900/60 border border-slate-800/80">
+              <div>
+                <span class="text-xs font-medium text-slate-200">ICMP (Ping) с ограничением частоты</span>
+                <p class="text-[11px] text-slate-400">Защищает от ICMP-flood, оставляя доступным traceroute</p>
+              </div>
+              <div class="flex items-center gap-3">
+                <input type="text" id="fw_icmp_limit" value="5,10:packet" class="form-input !w-32 text-center text-xs" oninput="updateScript()">
+                <input type="checkbox" id="fw_allow_icmp" checked onchange="updateScript()" class="rounded text-cyan-500 focus:ring-0">
+              </div>
+            </div>
+
+            <!-- Ports list -->
+            <div class="p-3 rounded-lg bg-slate-900/60 border border-slate-800/80 space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-medium text-slate-200">Открываемые порты на внешнем интерфейсе</span>
+                <button onclick="addCustomPortRow()" class="text-[11px] text-cyan-400 hover:text-cyan-300 font-medium">+ Добавить порт</button>
+              </div>
+              <div id="custom-ports-container" class="space-y-2">
+                <!-- Row 1: WireGuard -->
+                <div class="grid grid-cols-12 gap-2 items-center port-row">
+                  <select class="col-span-3 form-input text-xs port-proto" onchange="updateScript()">
+                    <option value="udp" selected>UDP</option>
+                    <option value="tcp">TCP</option>
+                  </select>
+                  <input type="number" class="col-span-3 form-input text-xs port-num" value="51820" placeholder="Порт" oninput="updateScript()">
+                  <input type="text" class="col-span-5 form-input text-xs port-comment" value="WireGuard VPN" placeholder="Комментарий" oninput="updateScript()">
+                  <button onclick="removePortRow(this)" class="col-span-1 text-slate-500 hover:text-rose-400 text-sm text-center">✕</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 4: Транзитный трафик (Forward Chain) и NAT -->
+        <div class="bg-[#131c2e] border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
+          <h2 class="text-sm font-bold text-white flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-cyan-400"></span> 4. Forwarding (Транзит) и NAT
+          </h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <label class="flex items-start gap-2.5 p-3 rounded-lg bg-slate-900/60 border border-slate-800/80 cursor-pointer">
+              <input type="checkbox" id="fw_fasttrack" checked onchange="updateScript()" class="mt-0.5 rounded text-cyan-500 focus:ring-0">
+              <div>
+                <span class="font-medium text-slate-200">FastTrack (Аппаратное ускорение)</span>
+                <p class="text-[11px] text-slate-400 mt-0.5">Снижает загрузку CPU до 5 раз. Отключите, если используете Simple Queues или IPsec.</p>
+              </div>
+            </label>
+            <label class="flex items-start gap-2.5 p-3 rounded-lg bg-slate-900/60 border border-slate-800/80 cursor-pointer">
+              <input type="checkbox" id="fw_allow_dstnat" checked onchange="updateScript()" class="mt-0.5 rounded text-cyan-500 focus:ring-0">
+              <div>
+                <span class="font-medium text-slate-200">Разрешить Port Forwarding (dst-nat)</span>
+                <p class="text-[11px] text-slate-400 mt-0.5">Автоматический пропуск проброшенных портов в локальную сеть</p>
+              </div>
+            </label>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Режим NAT</label>
+              <select id="fw_nat_type" class="form-input text-xs" onchange="updateScript()">
+                <option value="masquerade" selected>Masquerade (Динамический IP)</option>
+                <option value="srcnat">Src-NAT (Статический белый IP)</option>
+              </select>
+            </div>
+            <div id="fw_srcnat_ip_container" style="display:none;">
+              <label class="block text-xs font-medium text-slate-400 mb-1">Внешний статический IP</label>
+              <input type="text" id="fw_srcnat_ip" value="203.0.113.10" class="form-input text-xs" oninput="updateScript()">
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ============================================== -->
+      <!-- TAB 2: WIREGUARD MODULE -->
+      <!-- ============================================== -->
+      <div id="content-wireguard" class="hidden space-y-5">
+        
+        <!-- Info Banner -->
+        <div class="bg-gradient-to-r from-blue-950/60 to-slate-900 border border-blue-900/50 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs leading-relaxed text-slate-300">
+          <div class="flex gap-3">
+            <div class="text-blue-400 text-lg">⚡</div>
+            <div>
+              <strong class="text-blue-300 font-semibold">Модуль WireGuard (RouterOS v7):</strong>
+              Поддержка объединения филиалов (Site-to-Site Hub-and-Spoke), подключение сотрудников (RoadWarrior) и PBR-маршрутизация.
+              Включает генератор ключей Curve25519 в браузере, MSS Clamping (защита от зависания HTTPS) и автомаршрутизацию подсетей.
+            </div>
+          </div>
+          <button onclick="selectOnlyModule('wireguard')" class="shrink-0 text-[11px] bg-blue-900/60 hover:bg-blue-800 text-cyan-300 px-3 py-1.5 rounded-lg border border-blue-700/80 transition flex items-center gap-1.5 whitespace-nowrap">
+            ⚡ Только этот модуль
+          </button>
+        </div>
+
+        <!-- WireGuard Role & Interface Card -->
+        <div class="bg-[#131c2e] border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <h2 class="text-sm font-bold text-white flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-cyan-400"></span> 1. Роль роутера и параметры интерфейса
+            </h2>
+            <button onclick="regenRouterKeys()" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-cyan-300 px-2.5 py-1 rounded border border-slate-700 transition">
+              🎲 Сгенерировать ключи
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Сценарий использования</label>
+              <select id="wg_role" class="form-input text-xs" onchange="onWgRoleChange()">
+                <option value="hub" selected>🏢 Hub (Центральный сервер / Офис)</option>
+                <option value="spoke">🏠 Spoke (Филиал за NAT)</option>
+                <option value="roadwarrior">📱 RoadWarrior (Сервер для сотрудников)</option>
+                <option value="pbr">🌐 PBR Клиент (Выборочный VPN шлюз)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Имя интерфейса</label>
+              <input type="text" id="wg_iface" value="wg0" class="form-input text-xs font-mono" oninput="updateScript()">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">UDP Listen Port</label>
+              <input type="number" id="wg_port" value="51820" class="form-input text-xs font-mono" oninput="updateScript()">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Туннельный IP роутера</label>
+              <input type="text" id="wg_tunnel_ip" value="10.255.255.1/24" class="form-input text-xs font-mono" oninput="updateScript()">
+              <span class="text-[10px] text-slate-500">Адрес на интерфейсе WireGuard</span>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">MTU интерфейса</label>
+              <select id="wg_mtu" class="form-input text-xs font-mono" onchange="updateScript()">
+                <option value="1420" selected>1420 (Стандарт IPv4)</option>
+                <option value="1280">1280 (Безопасный / PPPoE / IPv6)</option>
+              </select>
+            </div>
+            <div id="wg_endpoint_container" style="display:none;">
+              <label class="block text-xs font-medium text-slate-400 mb-1">Endpoint Hub (IP / DDNS)</label>
+              <input type="text" id="wg_hub_endpoint" value="203.0.113.10" class="form-input text-xs font-mono" placeholder="vpn.example.com" oninput="updateScript()">
+            </div>
+          </div>
+
+          <!-- Keys Row -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Private Key (Приватный ключ роутера)</label>
+              <input type="text" id="wg_private_key" class="form-input text-xs font-mono text-cyan-300" placeholder="Генерируется автоматически" oninput="updateScript()">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Public Key (Публичный ключ роутера)</label>
+              <input type="text" id="wg_public_key" class="form-input text-xs font-mono text-emerald-400" placeholder="Генерируется автоматически" oninput="updateScript()">
+            </div>
+          </div>
+        </div>
+
+        <!-- Advanced Network Options -->
+        <div class="bg-[#131c2e] border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
+          <h2 class="text-sm font-bold text-white flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-cyan-400"></span> 2. Оптимизация сети и фаервола для WireGuard
+          </h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <label class="flex items-start gap-2.5 p-3 rounded-lg bg-slate-900/60 border border-slate-800/80 cursor-pointer">
+              <input type="checkbox" id="wg_mss_clamping" checked onchange="updateScript()" class="mt-0.5 rounded text-cyan-500 focus:ring-0">
+              <div>
+                <span class="font-medium text-slate-200">MSS Clamping (Mangle Change-MSS)</span>
+                <p class="text-[11px] text-slate-400 mt-0.5">Принудительно подрезает TCP MSS под 1380, предотвращая зависание веб-страниц при PMTU Blackhole</p>
+              </div>
+            </label>
+            <label class="flex items-start gap-2.5 p-3 rounded-lg bg-slate-900/60 border border-slate-800/80 cursor-pointer">
+              <input type="checkbox" id="wg_nat_clients" checked onchange="updateScript()" class="mt-0.5 rounded text-cyan-500 focus:ring-0">
+              <div>
+                <span class="font-medium text-slate-200">NAT Masquerade для VPN клиентов</span>
+                <p class="text-[11px] text-slate-400 mt-0.5">Позволяет клиентам WireGuard выходить через роутер в интернет или другие подсети</p>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Peers List Card -->
+        <div class="bg-[#131c2e] border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <h2 class="text-sm font-bold text-white flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-cyan-400"></span> 3. Пиры (Peers: филиалы и клиенты)
+            </h2>
+            <button onclick="addPeerRow()" class="text-xs bg-cyan-600 hover:bg-cyan-500 text-white font-medium px-3 py-1.5 rounded-lg transition">
+              + Добавить пир
+            </button>
+          </div>
+
+          <div id="peers-container" class="space-y-4">
+            <!-- Peers dynamically added here -->
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ============================================== -->
+      <!-- TAB 3: TELEGRAM MODULE -->
+      <!-- ============================================== -->
+      <div id="content-telegram" class="hidden space-y-5">
+        
+        <!-- Info Banner -->
+        <div class="bg-gradient-to-r from-blue-950/60 to-slate-900 border border-blue-900/50 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs leading-relaxed text-slate-300">
+          <div class="flex gap-3">
+            <div class="text-blue-400 text-lg">🤖</div>
+            <div>
+              <strong class="text-blue-300 font-semibold">Модуль уведомлений в Telegram:</strong>
+              Генерирует встроенную функцию <code class="text-cyan-300">TgSend</code> на базе <code class="text-cyan-300">/tool fetch</code> с нативной обработкой ошибок, защитой от сбоев связи, экранированием спецсимволов (URL-encoding) и настраиваемыми триггерами событий.
+            </div>
+          </div>
+          <button onclick="selectOnlyModule('telegram')" class="shrink-0 text-[11px] bg-blue-900/60 hover:bg-blue-800 text-cyan-300 px-3 py-1.5 rounded-lg border border-blue-700/80 transition flex items-center gap-1.5 whitespace-nowrap">
+            ⚡ Только этот модуль
+          </button>
+        </div>
+
+        <!-- Telegram Credentials Card -->
+        <div class="bg-[#131c2e] border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <h2 class="text-sm font-bold text-white flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-cyan-400"></span> 1. Параметры Telegram-бота
+            </h2>
+            <label class="flex items-center gap-2 cursor-pointer text-xs">
+              <input type="checkbox" id="tg_enabled" checked onchange="updateScript()" class="rounded text-cyan-500 focus:ring-0">
+              <span class="font-semibold text-slate-300">Включить модуль</span>
+            </label>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Telegram Bot Token</label>
+              <input type="text" id="tg_bot_token" value="123456789:ABCdefGHIjklMNOpqrsTUVwxyz" class="form-input text-xs font-mono" placeholder="712345678:AAH..." oninput="updateScript()">
+              <span class="text-[10px] text-slate-500">Получите у @BotFather в Telegram</span>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Chat ID (или ID группы/канала)</label>
+              <input type="text" id="tg_chat_id" value="-1001234567890" class="form-input text-xs font-mono" placeholder="-100... или 12345678" oninput="updateScript()">
+              <span class="text-[10px] text-slate-500">Узнать ID можно через @userinfobot или @getmyid_bot</span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Идентификатор роутера (Identity префикс)</label>
+              <input type="text" id="tg_router_name" value="MikroTik-HQ" class="form-input text-xs" oninput="updateScript()">
+              <span class="text-[10px] text-slate-500">Отображается в заголовке каждого сообщения</span>
+            </div>
+            <div class="flex items-end">
+              <button onclick="copyTestCommand()" class="w-full text-xs bg-slate-800 hover:bg-slate-700 text-cyan-300 font-medium py-2 px-3 rounded-lg border border-slate-700 transition flex items-center justify-center gap-1.5">
+                🧪 Скопировать CLI тест для терминала
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Event Triggers Selection -->
+        <div class="bg-[#131c2e] border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
+          <h2 class="text-sm font-bold text-white flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-cyan-400"></span> 2. Триггеры событий (Event Triggers)
+          </h2>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <!-- Event 1: Startup / Reboot -->
+            <label class="flex items-start gap-2.5 p-3 rounded-lg bg-slate-900/60 border border-slate-800/80 cursor-pointer hover:border-slate-700">
+              <input type="checkbox" id="tg_evt_startup" checked onchange="updateScript()" class="mt-0.5 rounded text-cyan-500 focus:ring-0">
+              <div>
+                <span class="font-medium text-slate-200">Перезагрузка роутера (Startup Alert)</span>
+                <p class="text-[11px] text-slate-400 mt-0.5">Уведомление при включении или перезапуске с текущей версией RouterOS и аптаймом</p>
+              </div>
+            </label>
+
+            <!-- Event 2: Admin Login -->
+            <label class="flex items-start gap-2.5 p-3 rounded-lg bg-slate-900/60 border border-slate-800/80 cursor-pointer hover:border-slate-700">
+              <input type="checkbox" id="tg_evt_login" checked onchange="updateScript()" class="mt-0.5 rounded text-cyan-500 focus:ring-0">
+              <div>
+                <span class="font-medium text-slate-200">Авторизация (Winbox / SSH / Web)</span>
+                <p class="text-[11px] text-slate-400 mt-0.5">Мгновенный алерт при успешном входе или неудачной попытке подбора пароля</p>
+              </div>
+            </label>
+
+            <!-- Event 3: Netwatch Failover -->
+            <label class="flex items-start gap-2.5 p-3 rounded-lg bg-slate-900/60 border border-slate-800/80 cursor-pointer hover:border-slate-700">
+              <input type="checkbox" id="tg_evt_netwatch" checked onchange="updateScript()" class="mt-0.5 rounded text-cyan-500 focus:ring-0">
+              <div>
+                <span class="font-medium text-slate-200">Мониторинг интернета (Netwatch Failover)</span>
+                <p class="text-[11px] text-slate-400 mt-0.5">Алерты при падении и восстановлении доступности внешних хостов (8.8.8.8, 1.1.1.1)</p>
+              </div>
+            </label>
+
+            <!-- Event 4: DHCP Rogue / New Device -->
+            <label class="flex items-start gap-2.5 p-3 rounded-lg bg-slate-900/60 border border-slate-800/80 cursor-pointer hover:border-slate-700">
+              <input type="checkbox" id="tg_evt_dhcp" checked onchange="updateScript()" class="mt-0.5 rounded text-cyan-500 focus:ring-0">
+              <div>
+                <span class="font-medium text-slate-200">Новое устройство в сети (DHCP Lease)</span>
+                <p class="text-[11px] text-slate-400 mt-0.5">Оповещение с IP, MAC-адресом и именем хоста при выдаче нового адреса</p>
+              </div>
+            </label>
+          </div>
+
+          <!-- Netwatch Host Setting -->
+          <div id="tg_netwatch_opts" class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-800/80">
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Хост для мониторинга Netwatch</label>
+              <input type="text" id="tg_netwatch_host" value="8.8.8.8" class="form-input text-xs font-mono" oninput="updateScript()">
+              <span class="text-[10px] text-slate-500">Публичный IP или шлюз провайдера</span>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Интервал проверки (Netwatch interval)</label>
+              <input type="text" id="tg_netwatch_interval" value="15s" class="form-input text-xs font-mono" oninput="updateScript()">
+              <span class="text-[10px] text-slate-500">Периодичность проверки доступности</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ============================================== -->
+      <!-- TAB 4: DEFENSE MODULE -->
+      <!-- ============================================== -->
+      <div id="content-defense" class="hidden space-y-5">
+        
+        <!-- Info Banner -->
+        <div class="bg-gradient-to-r from-blue-950/60 to-slate-900 border border-blue-900/50 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs leading-relaxed text-slate-300">
+          <div class="flex gap-3">
+            <div class="text-blue-400 text-lg">🛑</div>
+            <div>
+              <strong class="text-blue-300 font-semibold">Модуль защиты от сканирования и брутфорса:</strong>
+              Построен по архитектуре каскадных адрес-листов (vasilevkirill.ru), аппаратного PSD (Port Scan Detection) и портов-ловушек (Honeypot).
+              При обнаружении атаки хост заносится в <code class="text-cyan-300">Blacklist</code> и немедленно отбрасывается в таблице <strong class="text-cyan-300">RAW</strong> без нагрузки на процессор и RAM.
+            </div>
+          </div>
+          <button onclick="selectOnlyModule('defense')" class="shrink-0 text-[11px] bg-blue-900/60 hover:bg-blue-800 text-cyan-300 px-3 py-1.5 rounded-lg border border-blue-700/80 transition flex items-center gap-1.5 whitespace-nowrap">
+            ⚡ Только этот модуль
+          </button>
+        </div>
+
+        <!-- Section 1: Каскадная защита от подбора паролей -->
+        <div class="bg-[#131c2e] border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <h2 class="text-sm font-bold text-white flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-cyan-400"></span> 1. Каскадная защита от подбора паролей (Brute-Force)
+            </h2>
+            <label class="flex items-center gap-2 cursor-pointer text-xs">
+              <input type="checkbox" id="def_bf_enabled" checked onchange="updateScript()" class="rounded text-cyan-500 focus:ring-0">
+              <span class="font-semibold text-slate-300">Включить защиту</span>
+            </label>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Защищаемые порты</label>
+              <input type="text" id="def_bf_ports" value="22,8291,80,443" class="form-input text-xs font-mono" placeholder="22,8291" oninput="updateScript()">
+              <span class="text-[10px] text-slate-500">SSH, Winbox, Web управления</span>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Количество стадий (попыток)</label>
+              <select id="def_bf_stages" class="form-input text-xs" onchange="updateScript()">
+                <option value="3">3 попытки за 1 мин</option>
+                <option value="4" selected>4 попытки за 1 мин</option>
+                <option value="5">5 попыток за 1 мин</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Срок бана (Blacklist Timeout)</label>
+              <select id="def_bf_ban_time" class="form-input text-xs" onchange="updateScript()">
+                <option value="1h">1 час</option>
+                <option value="1d" selected>24 часа (1 день)</option>
+                <option value="7d">7 дней (Неделя)</option>
+                <option value="30d">30 дней</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 2: Детекция сканирования портов (PSD) -->
+        <div class="bg-[#131c2e] border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <h2 class="text-sm font-bold text-white flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-cyan-400"></span> 2. Детекция сканирования портов (Port Scan Detection - PSD)
+            </h2>
+            <label class="flex items-center gap-2 cursor-pointer text-xs">
+              <input type="checkbox" id="def_psd_enabled" checked onchange="updateScript()" class="rounded text-cyan-500 focus:ring-0">
+              <span class="font-semibold text-slate-300">Включить PSD</span>
+            </label>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Параметры PSD (Weight, Delay, Low, High)</label>
+              <input type="text" id="def_psd_params" value="21,3s,3,1" class="form-input text-xs font-mono" oninput="updateScript()">
+              <span class="text-[10px] text-slate-500">21 вес, задержка 3s, низкие порты весят 3, высокие 1</span>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Срок блокировки сканера</label>
+              <select id="def_psd_ban_time" class="form-input text-xs" onchange="updateScript()">
+                <option value="1d">24 часа</option>
+                <option value="7d" selected>7 дней (Рекомендовано)</option>
+                <option value="30d">30 дней</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 3: Порты-ловушки (Honeypot) -->
+        <div class="bg-[#131c2e] border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-sm font-bold text-white flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-cyan-400"></span> 3. Порты-ловушки (Port Honeypots)
+              </h2>
+              <p class="text-xs text-slate-400 mt-1">Заведомо неиспользуемые порты. Любое обращение к ним расценивается как автоматическое сканирование.</p>
+            </div>
+            <label class="flex items-center gap-2 cursor-pointer text-xs">
+              <input type="checkbox" id="def_honeypot_enabled" checked onchange="updateScript()" class="rounded text-cyan-500 focus:ring-0">
+              <span class="font-semibold text-slate-300">Включить ловушки</span>
+            </label>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Список портов-ловушек</label>
+              <input type="text" id="def_honeypot_ports" value="21,23,445,1433,3306,3389,5900,8080" class="form-input text-xs font-mono" oninput="updateScript()">
+              <span class="text-[10px] text-slate-500">Telnet, SMB, RDP, VNC, SQL, Proxy</span>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Срок мгновенного бана</label>
+              <select id="def_honeypot_ban_time" class="form-input text-xs" onchange="updateScript()">
+                <option value="7d">7 дней</option>
+                <option value="14d" selected>14 дней (Рекомендовано)</option>
+                <option value="30d">30 дней</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 4: Точки перехвата (Jump Rules) -->
+        <div class="bg-[#131c2e] border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
+          <h2 class="text-sm font-bold text-white flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-cyan-400"></span> 4. Точки перехвата трафика (Правила Jump)
+          </h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <label class="flex items-start gap-2.5 p-3 rounded-lg bg-slate-900/60 border border-slate-800/80 cursor-pointer">
+              <input type="checkbox" id="def_jump_input" checked onchange="updateScript()" class="mt-0.5 rounded text-cyan-500 focus:ring-0">
+              <div>
+                <span class="font-medium text-slate-200">Переход из Input (Защита самого роутера)</span>
+                <p class="text-[11px] text-slate-400 mt-0.5">Создает правило <code class="text-cyan-300">action=jump jump-target=Defense-Scans</code> для трафика на роутер</p>
+              </div>
+            </label>
+            <label class="flex items-start gap-2.5 p-3 rounded-lg bg-slate-900/60 border border-slate-800/80 cursor-pointer">
+              <input type="checkbox" id="def_jump_forward" checked onchange="updateScript()" class="mt-0.5 rounded text-cyan-500 focus:ring-0">
+              <div>
+                <span class="font-medium text-slate-200">Переход из Forward (Защита проброшенных портов)</span>
+                <p class="text-[11px] text-slate-400 mt-0.5">Перехватывает сканирование и подбор паролей к серверам в LAN (<code class="text-cyan-300">dst-nat</code>)</p>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Section 5: Логирование атак -->
+        <div class="bg-[#131c2e] border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
+          <h2 class="text-sm font-bold text-white flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-cyan-400"></span> 5. Интеграция с мониторингом и Telegram
+          </h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <label class="flex items-start gap-2.5 p-3 rounded-lg bg-slate-900/60 border border-slate-800/80 cursor-pointer">
+              <input type="checkbox" id="def_log_enabled" checked onchange="updateScript()" class="mt-0.5 rounded text-cyan-500 focus:ring-0">
+              <div>
+                <span class="font-medium text-slate-200">Логировать заблокированные атаки</span>
+                <p class="text-[11px] text-slate-400 mt-0.5">Запись в системный журнал с префиксом <code class="text-cyan-300">[ATTACK-BAN]</code></p>
+              </div>
+            </label>
+            <label class="flex items-start gap-2.5 p-3 rounded-lg bg-slate-900/60 border border-slate-800/80 cursor-pointer">
+              <input type="checkbox" id="def_tg_alert_enabled" checked onchange="updateScript()" class="mt-0.5 rounded text-cyan-500 focus:ring-0">
+              <div>
+                <span class="font-medium text-slate-200">Оповещать в Telegram при бане (Модуль 3)</span>
+                <p class="text-[11px] text-slate-400 mt-0.5">Автоматическая отправка IP нарушителя в Telegram через монитор логов</p>
+              </div>
+            </label>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ============================================== -->
+      <!-- TAB 5: SYSTEM HARDENING & DOH MODULE -->
+      <!-- ============================================== -->
+      <div id="content-system" class="hidden space-y-5">
+        
+        <!-- Info Banner -->
+        <div class="bg-gradient-to-r from-blue-950/60 to-slate-900 border border-blue-900/50 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs leading-relaxed text-slate-300">
+          <div class="flex gap-3">
+            <div class="text-blue-400 text-lg">🔒</div>
+            <div>
+              <strong class="text-blue-300 font-semibold">Системный харденинг и безопасный DNS (mikrotik-training.ru):</strong>
+              Защита L2-уровня (отключение MNDP-вещания на WAN, изоляция MAC-Winbox), закрытие уязвимых системных служб, синхронизация точного времени по NTP и шифрование DNS-запросов через DoH (DNS over HTTPS).
+            </div>
+          </div>
+          <button onclick="selectOnlyModule('system')" class="shrink-0 text-[11px] bg-blue-900/60 hover:bg-blue-800 text-cyan-300 px-3 py-1.5 rounded-lg border border-blue-700/80 transition flex items-center gap-1.5 whitespace-nowrap">
+            ⚡ Только этот модуль
+          </button>
+        </div>
+
+        <!-- Section 1: L2 Security & MNDP -->
+        <div class="bg-[#131c2e] border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
+          <h2 class="text-sm font-bold text-white flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-cyan-400"></span> 1. Безопасность L2 и протокола обнаружения (MNDP / LLDP)
+          </h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <label class="flex items-start gap-2.5 p-3 rounded-lg bg-slate-900/60 border border-slate-800/80 cursor-pointer">
+              <input type="checkbox" id="sys_mndp_hide" checked onchange="updateScript()" class="mt-0.5 rounded text-cyan-500 focus:ring-0">
+              <div>
+                <span class="font-medium text-slate-200">Скрыть роутер от провайдера (MNDP Isolation)</span>
+                <p class="text-[11px] text-slate-400 mt-0.5">Ограничивает Discovery Protocol только списком <code class="text-cyan-300">Management</code>. Роутер исчезает из видимости в сети провайдера.</p>
+              </div>
+            </label>
+            <label class="flex items-start gap-2.5 p-3 rounded-lg bg-slate-900/60 border border-slate-800/80 cursor-pointer">
+              <input type="checkbox" id="sys_mac_server_secure" checked onchange="updateScript()" class="mt-0.5 rounded text-cyan-500 focus:ring-0">
+              <div>
+                <span class="font-medium text-slate-200">Изоляция MAC-Winbox / MAC-Telnet</span>
+                <p class="text-[11px] text-slate-400 mt-0.5">Запрещает L2-подключение к роутеру по MAC-адресу с любых портов, кроме доверенного <code class="text-cyan-300">Management</code>.</p>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Section 2: IP Services Hardening -->
+        <div class="bg-[#131c2e] border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
+          <h2 class="text-sm font-bold text-white flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-cyan-400"></span> 2. Системные службы (/ip service)
+          </h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <label class="flex items-start gap-2.5 p-3 rounded-lg bg-slate-900/60 border border-slate-800/80 cursor-pointer">
+              <input type="checkbox" id="sys_disable_insecure" checked onchange="updateScript()" class="mt-0.5 rounded text-cyan-500 focus:ring-0">
+              <div>
+                <span class="font-medium text-slate-200">Отключить незашифрованные службы</span>
+                <p class="text-[11px] text-slate-400 mt-0.5">Отключает telnet (23), ftp (21), www (80), api (8728) и api-ssl (8729).</p>
+              </div>
+            </label>
+            <label class="flex items-start gap-2.5 p-3 rounded-lg bg-slate-900/60 border border-slate-800/80 cursor-pointer">
+              <input type="checkbox" id="sys_restrict_mgmt" checked onchange="updateScript()" class="mt-0.5 rounded text-cyan-500 focus:ring-0">
+              <div>
+                <span class="font-medium text-slate-200">Ограничить Winbox & SSH на уровне сервиса</span>
+                <p class="text-[11px] text-slate-400 mt-0.5">Задает параметр <code class="text-cyan-300">address=TRUSTED-MGMT</code> прямо в настройках служб (двойная защита вместе с фаерволом).</p>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Section 3: NTP Client -->
+        <div class="bg-[#131c2e] border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <h2 class="text-sm font-bold text-white flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-cyan-400"></span> 3. Синхронизация точного времени (NTP)
+            </h2>
+            <label class="flex items-center gap-2 cursor-pointer text-xs">
+              <input type="checkbox" id="sys_ntp_enabled" checked onchange="updateScript()" class="rounded text-cyan-500 focus:ring-0">
+              <span class="font-semibold text-slate-300">Включить NTP</span>
+            </label>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">NTP Серверы (через запятую)</label>
+              <input type="text" id="sys_ntp_servers" value="pool.ntp.org, time.google.com, time.cloudflare.com" class="form-input text-xs font-mono" oninput="updateScript()">
+              <span class="text-[10px] text-slate-500">Критично для работы таймаутов блокировок и SSL/WireGuard</span>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Часовой пояс (Timezone)</label>
+              <input type="text" id="sys_timezone" value="Europe/Moscow" class="form-input text-xs font-mono" oninput="updateScript()">
+              <span class="text-[10px] text-slate-500">Например: Europe/Moscow, Asia/Yekaterinburg</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 4: Secure DNS & DoH -->
+        <div class="bg-[#131c2e] border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <h2 class="text-sm font-bold text-white flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-cyan-400"></span> 4. Защищенный DNS over HTTPS (DoH)
+            </h2>
+            <label class="flex items-center gap-2 cursor-pointer text-xs">
+              <input type="checkbox" id="sys_doh_enabled" checked onchange="updateScript()" class="rounded text-cyan-500 focus:ring-0">
+              <span class="font-semibold text-slate-300">Включить DoH</span>
+            </label>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">DoH Провайдер</label>
+              <select id="sys_doh_provider" class="form-input text-xs" onchange="updateScript()">
+                <option value="cloudflare" selected>Cloudflare (https://cloudflare-dns.com/dns-query)</option>
+                <option value="google">Google (https://dns.google/dns-query)</option>
+                <option value="quad9">Quad9 (https://dns.quad9.net/dns-query)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Размер кэша DNS</label>
+              <select id="sys_dns_cache" class="form-input text-xs" onchange="updateScript()">
+                <option value="4096KiB" selected>4096 KiB (Рекомендовано)</option>
+                <option value="8192KiB">8192 KiB (Для офиса)</option>
+                <option value="2048KiB">2048 KiB (Для слабых моделей)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="pt-1 text-xs">
+            <label class="flex items-start gap-2.5 p-3 rounded-lg bg-slate-900/60 border border-slate-800/80 cursor-pointer">
+              <input type="checkbox" id="sys_dns_redirect" checked onchange="updateScript()" class="mt-0.5 rounded text-cyan-500 focus:ring-0">
+              <div>
+                <span class="font-medium text-slate-200">Принудительный перехват DNS (DNS Redirection)</span>
+                <p class="text-[11px] text-slate-400 mt-0.5">Заворачивает все исходящие UDP 53 запросы клиентов LAN в локальный DoH роутера, исключая утечки и подмену DNS провайдером.</p>
+              </div>
+            </label>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Right Output Panel (5 Cols) -->
+    <div class="lg:col-span-5 flex flex-col space-y-3">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span class="text-xs font-bold text-slate-200 uppercase tracking-wider">Генератор .rsc (RouterOS v7)</span>
+        </div>
+        <div id="stats-badge" class="text-[11px] text-slate-400 font-mono">
+          0 строк
+        </div>
+      </div>
+
+      <!-- Code Box -->
+      <div class="relative flex-1 bg-[#090d16] border border-slate-800 rounded-xl p-4 flex flex-col min-h-[500px]">
+        <pre id="outputCode" class="flex-1 text-[12px] text-cyan-300 font-mono overflow-auto custom-scroll leading-relaxed select-all whitespace-pre"></pre>
+        
+        <!-- Toast message -->
+        <div id="toast" class="absolute bottom-4 right-4 bg-emerald-600 text-white text-xs px-3 py-1.5 rounded-lg shadow-lg opacity-0 transition-opacity pointer-events-none">
+          Скопировано в буфер обмена!
+        </div>
+      </div>
+
+      <!-- Safe Mode Banner -->
+      <div class="bg-amber-950/40 border border-amber-800/60 rounded-xl p-3 flex items-start gap-2.5 text-xs text-amber-300">
+        <span class="text-base">⚠️</span>
+        <div>
+          <strong>Рекомендация архитектора:</strong> При первом применении файрвола на удаленном роутере всегда активируйте кнопку <span class="underline font-semibold">Safe Mode</span> в Winbox (или Ctrl+X в терминале).
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    // =========================================================
+    // X25519 (Curve25519) Pure JS In-Browser Key Generator
+    // =========================================================
+    const P = (1n << 255n) - 19n;
+    const A24 = 121665n;
+    function mod(a) { const r = a % P; return r < 0n ? r + P : r; }
+    function inv(x) {
+      let res = 1n, b = x, e = P - 2n;
+      while (e > 0n) { if (e & 1n) res = mod(res * b); b = mod(b * b); e >>= 1n; }
+      return res;
+    }
+    function cswap(swap, a, b) {
+      const dummy = swap * (a ^ b);
+      return [a ^ dummy, b ^ dummy];
+    }
+    function x25519Base(scalarBytes) {
+      const k = new Uint8Array(scalarBytes);
+      k[0] &= 248; k[31] &= 127; k[31] |= 64;
+      let scalar = 0n;
+      for (let i = 0; i < 32; i++) scalar |= BigInt(k[i]) << (8n * BigInt(i));
+
+      let x_1 = 9n, x_2 = 1n, z_2 = 0n, x_3 = 9n, z_3 = 1n, swap = 0n;
+      for (let t = 254n; t >= 0n; t--) {
+        const k_t = (scalar >> t) & 1n;
+        swap ^= k_t;
+        [x_2, x_3] = cswap(swap, x_2, x_3);
+        [z_2, z_3] = cswap(swap, z_2, z_3);
+        swap = k_t;
+        const A = mod(x_2 + z_2), AA = mod(A * A);
+        const B = mod(x_2 - z_2), BB = mod(B * B);
+        const E = mod(AA - BB);
+        const C = mod(x_3 + z_3), D = mod(x_3 - z_3);
+        const DA = mod(D * A), CB = mod(C * B);
+        x_3 = mod((DA + CB) * (DA + CB));
+        z_3 = mod(x_1 * mod((DA - CB) * (DA - CB)));
+        x_2 = mod(AA * BB);
+        z_2 = mod(E * (AA + mod(A24 * E)));
+      }
+      [x_2, x_3] = cswap(swap, x_2, x_3);
+      [z_2, z_3] = cswap(swap, z_2, z_3);
+      const res = mod(x_2 * inv(z_2));
+      const out = new Uint8Array(32);
+      let temp = res;
+      for (let i = 0; i < 32; i++) { out[i] = Number(temp & 0xffn); temp >>= 8n; }
+      return out;
+    }
+    function bytesToBase64(bytes) {
+      let bin = '';
+      for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+      return btoa(bin);
+    }
+    function generateWgKeyPair() {
+      const priv = new Uint8Array(32);
+      window.crypto.getRandomValues(priv);
+      priv[0] &= 248; priv[31] &= 127; priv[31] |= 64;
+      const pub = x25519Base(priv);
+      return { privateKey: bytesToBase64(priv), publicKey: bytesToBase64(pub) };
+    }
+
+    // Router Keys
+    function regenRouterKeys() {
+      const kp = generateWgKeyPair();
+      document.getElementById('wg_private_key').value = kp.privateKey;
+      document.getElementById('wg_public_key').value = kp.publicKey;
+      updateScript();
+    }
+
+    // Peer Management
+    let peerCounter = 0;
+    const peers = [];
+
+    function addPeerRow(initData = null) {
+      const id = ++peerCounter;
+      const kp = generateWgKeyPair();
+      const peer = {
+        id: id,
+        name: initData?.name || `Peer-${id}`,
+        privKey: initData?.privKey || kp.privateKey,
+        pubKey: initData?.pubKey || kp.publicKey,
+        tunIp: initData?.tunIp || `10.255.255.${id + 1}`,
+        remoteLan: initData?.remoteLan || (id === 1 ? '192.168.2.0/24' : ''),
+        endpoint: initData?.endpoint || '',
+        keepalive: initData?.keepalive || '25s'
+      };
+      peers.push(peer);
+      renderPeers();
+      updateScript();
+    }
+
+    function removePeer(id) {
+      const idx = peers.findIndex(p => p.id === id);
+      if (idx !== -1) {
+        peers.splice(idx, 1);
+        renderPeers();
+        updateScript();
+      }
+    }
+
+    function regenPeerKeys(id) {
+      const p = peers.find(p => p.id === id);
+      if (p) {
+        const kp = generateWgKeyPair();
+        p.privKey = kp.privateKey;
+        p.pubKey = kp.publicKey;
+        renderPeers();
+        updateScript();
+      }
+    }
+
+    function renderPeers() {
+      const container = document.getElementById('peers-container');
+      container.innerHTML = '';
+      if (peers.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-6 text-slate-500 text-xs border border-dashed border-slate-800 rounded-lg">
+            Нет добавленных пиров. Нажмите "+ Добавить пир" для настройки филиала или мобильного клиента.
+          </div>
+        `;
+        return;
+      }
+
+      peers.forEach(p => {
+        const div = document.createElement('div');
+        div.className = 'border border-slate-800 bg-slate-900/70 rounded-xl p-4 space-y-3';
+        div.innerHTML = `
+          <div class="flex items-center justify-between pb-2 border-b border-slate-800/80">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+              <input type="text" value="${p.name}" class="bg-transparent font-semibold text-xs text-white border-b border-transparent hover:border-slate-700 focus:border-cyan-400 focus:outline-none px-1" oninput="p.name=this.value; updateScript();">
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="downloadPeerConf(${p.id})" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-cyan-300 px-2.5 py-1 rounded transition flex items-center gap-1">
+                📥 Скачать .conf для клиента
+              </button>
+              <button onclick="regenPeerKeys(${p.id})" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded transition">
+                🎲 Ключи
+              </button>
+              <button onclick="removePeer(${p.id})" class="text-rose-400 hover:text-rose-300 text-xs px-2 py-1">✕</button>
+            </div>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Туннельный IP пира</label>
+              <input type="text" value="${p.tunIp}" class="form-input text-xs font-mono" oninput="p.tunIp=this.value; updateScript();">
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Локальная подсеть пира (LAN)</label>
+              <input type="text" value="${p.remoteLan}" placeholder="192.168.2.0/24 (если есть)" class="form-input text-xs font-mono" oninput="p.remoteLan=this.value; updateScript();">
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Keepalive</label>
+              <input type="text" value="${p.keepalive}" class="form-input text-xs font-mono" oninput="p.keepalive=this.value; updateScript();">
+            </div>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Public Key пира (для MikroTik)</label>
+              <input type="text" value="${p.pubKey}" class="form-input text-xs font-mono text-emerald-400" oninput="p.pubKey=this.value; updateScript();">
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Private Key пира (для .conf клиента)</label>
+              <input type="text" value="${p.privKey}" class="form-input text-xs font-mono text-cyan-300" oninput="p.privKey=this.value; updateScript();">
+            </div>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    // Role Change
+    function onWgRoleChange() {
+      const role = document.getElementById('wg_role').value;
+      const endpointCont = document.getElementById('wg_endpoint_container');
+      if (role === 'spoke' || role === 'pbr') {
+        endpointCont.style.display = 'block';
+      } else {
+        endpointCont.style.display = 'none';
+      }
+      updateScript();
+    }
+
+    // Download Peer .conf for WireGuard Official App
+    function downloadPeerConf(peerId) {
+      const p = peers.find(x => x.id === peerId);
+      if (!p) return;
+
+      const routerPubKey = document.getElementById('wg_public_key').value || '<ROUTER_PUBLIC_KEY>';
+      const endpoint = document.getElementById('wg_hub_endpoint').value || 'YOUR_ROUTER_PUBLIC_IP';
+      const port = document.getElementById('wg_port').value || '51820';
+      const mtu = document.getElementById('wg_mtu').value || '1420';
+
+      let conf = [];
+      conf.push(`[Interface]`);
+      conf.push(`PrivateKey = ${p.privKey}`);
+      conf.push(`Address = ${p.tunIp}/24`);
+      conf.push(`DNS = 1.1.1.1, 8.8.8.8`);
+      conf.push(`MTU = ${mtu}\n`);
+      conf.push(`[Peer]`);
+      conf.push(`PublicKey = ${routerPubKey}`);
+      conf.push(`Endpoint = ${endpoint}:${port}`);
+      conf.push(`AllowedIPs = 0.0.0.0/0, ::/0`);
+      conf.push(`PersistentKeepalive = 25`);
+
+      const blob = new Blob([conf.join('\n')], { type: 'text/plain;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `${p.name.replace(/\s+/g, '_')}.conf`;
+      a.click();
+    }
+
+    // Tab switching
+    let currentActiveTab = 'firewall';
+    function switchTab(tabId) {
+      currentActiveTab = tabId;
+      ['firewall', 'wireguard', 'telegram', 'defense', 'system'].forEach(t => {
+        const btn = document.getElementById('tab-' + t);
+        const content = document.getElementById('content-' + t);
+        if (t === tabId) {
+          btn.className = 'tab-btn px-4 py-2.5 text-xs font-semibold rounded-t-lg border-b-2 flex items-center gap-2 tab-active';
+          content.classList.remove('hidden');
+        } else {
+          btn.className = 'tab-btn px-4 py-2.5 text-xs font-semibold rounded-t-lg border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2';
+          content.classList.add('hidden');
+        }
+      });
+      updateScript();
+    }
+
+    // Module inclusion management
+    function setModulesMode(mode) {
+      const mods = ['firewall', 'wireguard', 'telegram', 'defense', 'system'];
+      if (mode === 'all') {
+        mods.forEach(m => document.getElementById('mod_enable_' + m).checked = true);
+      } else if (mode === 'none') {
+        mods.forEach(m => document.getElementById('mod_enable_' + m).checked = false);
+      } else if (mode === 'only_current') {
+        mods.forEach(m => {
+          document.getElementById('mod_enable_' + m).checked = (m === currentActiveTab);
+        });
+      }
+      updateScript();
+    }
+
+    function selectOnlyModule(modId) {
+      const mods = ['firewall', 'wireguard', 'telegram', 'defense', 'system'];
+      mods.forEach(m => {
+        document.getElementById('mod_enable_' + m).checked = (m === modId);
+      });
+      switchTab(modId);
+    }
+
+    // ASCII Transliteration to guarantee 100% English ASCII in RouterOS comments
+    function translit(str) {
+      if (!str) return '';
+      const ru = {
+        'а':'a', 'б':'b', 'в':'v', 'г':'g', 'д':'d', 'е':'e', 'ё':'yo', 'ж':'zh',
+        'з':'z', 'и':'i', 'й':'y', 'к':'k', 'л':'l', 'м':'m', 'н':'n', 'о':'o',
+        'п':'p', 'р':'r', 'с':'s', 'т':'t', 'у':'u', 'ф':'f', 'х':'kh', 'ц':'ts',
+        'ч':'ch', 'ш':'sh', 'щ':'shch', 'ъ':'', 'ы':'y', 'ь':'', 'э':'e', 'ю':'yu', 'я':'ya',
+        'А':'A', 'Б':'B', 'В':'V', 'Г':'G', 'Д':'D', 'Е':'E', 'Ё':'Yo', 'Ж':'Zh',
+        'З':'Z', 'И':'I', 'Й':'Y', 'К':'K', 'Л':'L', 'М':'M', 'Н':'N', 'О':'O',
+        'П':'P', 'Р':'R', 'С':'S', 'Т':'T', 'У':'U', 'Ф':'F', 'Х':'Kh', 'Ц':'Ts',
+        'Ч':'Ch', 'Ш':'Sh', 'Щ':'Shch', 'Ъ':'', 'Ы':'Y', 'Ь':'', 'Э':'E', 'Ю':'Yu', 'Я':'Ya'
+      };
+      return str.split('').map(char => ru[char] !== undefined ? ru[char] : char).join('').replace(/[^\x20-\x7E]/g, '').trim();
+    }
+
+    // Port Rows
+    function addCustomPortRow(proto = 'tcp', port = '', comment = '') {
+      const container = document.getElementById('custom-ports-container');
+      const div = document.createElement('div');
+      div.className = 'grid grid-cols-12 gap-2 items-center port-row';
+      div.innerHTML = `
+        <select class="col-span-3 form-input text-xs port-proto" onchange="updateScript()">
+          <option value="tcp" ${proto === 'tcp' ? 'selected' : ''}>TCP</option>
+          <option value="udp" ${proto === 'udp' ? 'selected' : ''}>UDP</option>
+        </select>
+        <input type="number" class="col-span-3 form-input text-xs port-num" value="${port}" placeholder="Port" oninput="updateScript()">
+        <input type="text" class="col-span-5 form-input text-xs port-comment" value="${comment}" placeholder="Comment (ASCII)" oninput="updateScript()">
+        <button onclick="removePortRow(this)" class="col-span-1 text-slate-500 hover:text-rose-400 text-sm text-center">✕</button>
+      `;
+      container.appendChild(div);
+      updateScript();
+    }
+
+    function removePortRow(btn) {
+      btn.closest('.port-row').remove();
+      updateScript();
+    }
+
+    // Presets
+    function applyPreset(name) {
+      if (name === 'office') {
+        document.getElementById('fw_isp_interfaces').value = 'ether1';
+        document.getElementById('fw_local_interfaces').value = 'bridge';
+        document.getElementById('fw_mgmt_interface').value = 'bridge';
+        document.getElementById('fw_trusted_subnets').value = '192.168.88.0/24';
+        document.getElementById('fw_fasttrack').checked = true;
+        document.getElementById('fw_allow_icmp').checked = true;
+        document.getElementById('fw_icmp_limit').value = '5,10:packet';
+      } else if (name === 'paranoid') {
+        document.getElementById('fw_isp_interfaces').value = 'ether1';
+        document.getElementById('fw_local_interfaces').value = 'bridge';
+        document.getElementById('fw_mgmt_interface').value = 'ether5';
+        document.getElementById('fw_trusted_subnets').value = '192.168.99.10/32';
+        document.getElementById('fw_fasttrack').checked = false;
+        document.getElementById('fw_allow_icmp').checked = false;
+      }
+      updateScript();
+    }
+
+    // Main Script Generator (Full Architecture)
+    function updateScript() {
+      // 0. Module selection state
+      const modFirewall = document.getElementById('mod_enable_firewall')?.checked ?? true;
+      const modWireguard = document.getElementById('mod_enable_wireguard')?.checked ?? true;
+      const modTelegram = document.getElementById('mod_enable_telegram')?.checked ?? true;
+      const modDefense = document.getElementById('mod_enable_defense')?.checked ?? true;
+      const modSystem = document.getElementById('mod_enable_system')?.checked ?? true;
+      const activeCount = [modFirewall, modWireguard, modTelegram, modDefense, modSystem].filter(Boolean).length;
+
+      // 1. Firewall params
+      const ispIfaces = document.getElementById('fw_isp_interfaces').value.split(',').map(s => s.trim()).filter(Boolean);
+      const localIfaces = document.getElementById('fw_local_interfaces').value.split(',').map(s => s.trim()).filter(Boolean);
+      const mgmtIface = document.getElementById('fw_mgmt_interface').value.trim();
+      const trustedSubnets = document.getElementById('fw_trusted_subnets').value.split(',').map(s => s.trim()).filter(Boolean);
+      
+      const rawTcpFlags = document.getElementById('fw_raw_tcp_flags').checked;
+      const rawBlacklist = document.getElementById('fw_raw_blacklist').checked;
+      const allowIcmp = document.getElementById('fw_allow_icmp').checked;
+      const icmpLimit = document.getElementById('fw_icmp_limit').value.trim();
+      const fastTrack = document.getElementById('fw_fasttrack').checked;
+      const allowDstnat = document.getElementById('fw_allow_dstnat').checked;
+      const natType = document.getElementById('fw_nat_type').value;
+      const srcNatIp = document.getElementById('fw_srcnat_ip').value.trim();
+
+      document.getElementById('fw_srcnat_ip_container').style.display = (natType === 'srcnat') ? 'block' : 'none';
+
+      // Custom ports
+      const portRows = document.querySelectorAll('.port-row');
+      const customPorts = [];
+      portRows.forEach(row => {
+        const proto = row.querySelector('.port-proto').value;
+        const port = row.querySelector('.port-num').value.trim();
+        const rawComment = row.querySelector('.port-comment').value.trim();
+        const comment = translit(rawComment) || 'Custom port';
+        if (port) {
+          customPorts.push({ proto, port, comment });
+        }
+      });
+
+      // 2. WireGuard params
+      const wgRole = document.getElementById('wg_role').value;
+      const wgIface = document.getElementById('wg_iface').value.trim() || 'wg0';
+      const wgPort = document.getElementById('wg_port').value.trim() || '51820';
+      const wgTunnelIp = document.getElementById('wg_tunnel_ip').value.trim() || '10.255.255.1/24';
+      const wgMtu = document.getElementById('wg_mtu').value;
+      const wgPrivKey = document.getElementById('wg_private_key').value.trim();
+      const wgPubKey = document.getElementById('wg_public_key').value.trim();
+      const wgHubEndpoint = document.getElementById('wg_hub_endpoint').value.trim();
+      const wgMssClamping = document.getElementById('wg_mss_clamping').checked;
+      const wgNatClients = document.getElementById('wg_nat_clients').checked;
+
+      let rsc = [];
+      rsc.push(`# =====================================================================`);
+      rsc.push(`# MikroTik RouterOS v7 - Production Network Configuration`);
+      rsc.push(`# Architecture: vasilevkirill.ru & MikroTik Enterprise Best Practices`);
+      rsc.push(`# Generated: ${new Date().toISOString().replace('T', ' ').substring(0, 19)} UTC`);
+      rsc.push(`# Active Modules (${activeCount}/5): ${[
+        modFirewall ? '1.Firewall' : '',
+        modWireguard ? '2.WireGuard' : '',
+        modTelegram ? '3.Telegram' : '',
+        modDefense ? '4.Defense' : '',
+        modSystem ? '5.System&DoH' : ''
+      ].filter(Boolean).join(', ') || 'None'}`);
+      rsc.push(`# =====================================================================\n`);
+
+      if (activeCount === 0) {
+        rsc.push(`# [NOTICE] No modules selected for configuration.`);
+        rsc.push(`# Please check at least one module in the top bar above.`);
+        const finalScript = rsc.join('\n');
+        document.getElementById('outputCode').textContent = finalScript;
+        document.getElementById('stats-badge').textContent = `0 строк (0 из 5 модулей)`;
+        return;
+      }
+
+      // -------------------------------------------------------------
+      // 1. MODULE: WIREGUARD
+      // -------------------------------------------------------------
+      if (modWireguard) {
+        rsc.push(`# =====================================================================`);
+        rsc.push(`# 1. MODULE: WIREGUARD (Role: ${wgRole.toUpperCase()})`);
+        rsc.push(`# =====================================================================`);
+        rsc.push(`/interface wireguard`);
+        let wgAddCmd = `add name="${wgIface}" listen-port=${wgPort} mtu=${wgMtu}`;
+        if (wgPrivKey) {
+          wgAddCmd += ` private-key="${wgPrivKey}"`;
+        }
+        wgAddCmd += ` comment="WireGuard VPN Interface"`;
+        rsc.push(wgAddCmd);
+
+        rsc.push(`/ip address`);
+        rsc.push(`add address=${wgTunnelIp} interface="${wgIface}" comment="WireGuard Tunnel IP"\n`);
+
+        if (peers.length > 0) {
+          rsc.push(`/interface wireguard peers`);
+          peers.forEach(p => {
+            let allowedIps = [`${p.tunIp}/32`];
+            if (p.remoteLan) allowedIps.push(p.remoteLan);
+            let peerCmd = `add interface="${wgIface}" public-key="${p.pubKey}" allowed-address=${allowedIps.join(',')}`;
+            if (p.endpoint) {
+              peerCmd += ` endpoint-address="${p.endpoint}"`;
+            }
+            if (p.keepalive) {
+              peerCmd += ` persistent-keepalive=${p.keepalive}`;
+            }
+            peerCmd += ` comment="${translit(p.name)}"`;
+            rsc.push(peerCmd);
+          });
+          rsc.push(``);
+
+          // Auto-Routing to Spoke LANs
+          const peersWithLan = peers.filter(p => Boolean(p.remoteLan));
+          if (peersWithLan.length > 0) {
+            rsc.push(`/ip route`);
+            peersWithLan.forEach(p => {
+              rsc.push(`add dst-address=${p.remoteLan} gateway="${wgIface}" comment="Route to ${translit(p.name)} LAN"`);
+            });
+            rsc.push(``);
+          }
+        }
+
+        if (wgMssClamping) {
+          rsc.push(`# WireGuard MSS Clamping (PMTU Fix)`);
+          rsc.push(`/ip firewall mangle`);
+          rsc.push(`add chain=forward protocol=tcp tcp-flags=syn tcp-mss=1381-65535 action=change-mss new-mss=1380 passthrough=yes comment="WireGuard MSS Clamping (PMTU)"\n`);
+        }
+
+        if (!modFirewall && wgNatClients) {
+          rsc.push(`# Standalone NAT Masquerade for WireGuard Subnet`);
+          rsc.push(`/ip firewall nat`);
+          rsc.push(`add chain=srcnat src-address=10.255.255.0/24 action=masquerade comment="NAT for WireGuard Subnet"\n`);
+        }
+      }
+
+      // -------------------------------------------------------------
+      // 2. MODULE: FIREWALL (Interface Lists, RAW, Filter, NAT)
+      // -------------------------------------------------------------
+      if (modFirewall) {
+        rsc.push(`# =====================================================================`);
+        rsc.push(`# 2. MODULE: INTERFACE LISTS & ZONES (ISP, Local, Management, WG)`);
+        rsc.push(`# =====================================================================`);
+        rsc.push(`/interface list`);
+        rsc.push(`add name=ISP comment="WAN Uplinks"`);
+        rsc.push(`add name=Local comment="Local Networks"`);
+        rsc.push(`add name=WG comment="WireGuard VPN Interfaces"`);
+        rsc.push(`add name=Management comment="Management Interface List"\n`);
+
+        rsc.push(`/interface list member`);
+        ispIfaces.forEach(i => rsc.push(`add list=ISP interface="${i}"`));
+        localIfaces.forEach(i => rsc.push(`add list=Local interface="${i}"`));
+        rsc.push(`add list=WG interface="${wgIface}"`);
+        if (mgmtIface) {
+          rsc.push(`add list=Management interface="${mgmtIface}"`);
+        }
+        rsc.push(``);
+
+        // Address lists
+        rsc.push(`/ip firewall address-list`);
+        trustedSubnets.forEach(sub => {
+          rsc.push(`add list=TRUSTED-MGMT address=${sub} comment="Trusted Admin Subnet"`);
+        });
+        rsc.push(`add list=RFC1918 address=10.0.0.0/8 comment="Private network"`);
+        rsc.push(`add list=RFC1918 address=172.16.0.0/12 comment="Private network"`);
+        rsc.push(`add list=RFC1918 address=192.168.0.0/16 comment="Private network"`);
+        rsc.push(``);
+
+        // RAW
+        if (rawTcpFlags || rawBlacklist) {
+          rsc.push(`# =====================================================================`);
+          rsc.push(`# 3. RAW FIREWALL (Prerouting drops before Connection Tracker)`);
+          rsc.push(`# =====================================================================`);
+          rsc.push(`/ip firewall raw`);
+          if (rawBlacklist) {
+            rsc.push(`add chain=prerouting in-interface-list=ISP src-address-list=Blacklist action=drop comment="Drop Blacklisted hosts early"`);
+          }
+          if (rawTcpFlags) {
+            rsc.push(`add chain=prerouting in-interface-list=ISP protocol=tcp tcp-flags=!fin,!syn,!rst,!ack action=drop comment="Drop TCP NULL"`);
+            rsc.push(`add chain=prerouting in-interface-list=ISP protocol=tcp tcp-flags=fin,syn,rst,psh,ack,urg action=drop comment="Drop TCP Xmas"`);
+            rsc.push(`add chain=prerouting in-interface-list=ISP protocol=tcp tcp-flags=fin,syn action=drop comment="Drop TCP SYN-FIN"`);
+            rsc.push(`add chain=prerouting in-interface-list=ISP protocol=tcp tcp-flags=fin,rst action=drop comment="Drop TCP FIN-RST"`);
+          }
+          rsc.push(``);
+        }
+
+        // Filter
+        rsc.push(`# =====================================================================`);
+        rsc.push(`# 4. FILTER FIREWALL (Default-Drop & Custom Chains)`);
+        rsc.push(`# =====================================================================`);
+        rsc.push(`/ip firewall filter`);
+        rsc.push(`add chain=input in-interface-list=ISP action=jump jump-target=ISP-Input comment="--> Route ISP Input traffic"`);
+        rsc.push(`add chain=input in-interface-list=Local action=jump jump-target=Local-Input comment="--> Route Local Input traffic"`);
+        rsc.push(`add chain=input in-interface-list=WG action=jump jump-target=Local-Input comment="--> Route WireGuard Input traffic"\n`);
+
+        const defJumpInput = document.getElementById('def_jump_input')?.checked ?? true;
+        const defJumpForward = document.getElementById('def_jump_forward')?.checked ?? true;
+
+        // ISP-Input chain
+        rsc.push(`# --- Chain: ISP-Input (Traffic from Internet) ---`);
+        rsc.push(`add chain=ISP-Input connection-state=established action=accept comment="Accept Established"`);
+        rsc.push(`add chain=ISP-Input connection-state=related action=accept comment="Accept Related"`);
+        rsc.push(`add chain=ISP-Input connection-state=untracked action=accept comment="Accept Untracked"`);
+        rsc.push(`add chain=ISP-Input connection-state=invalid action=drop comment="Drop Invalid"`);
+        if (modDefense && defJumpInput) {
+          rsc.push(`add chain=ISP-Input action=jump jump-target=Defense-Scans comment="[1. JUMP RULE] Jump to Defense-Scans (Scans and Brute-Force)"`);
+        }
+        rsc.push(`add chain=ISP-Input action=jump jump-target=ISP-Input-Allow comment="Jump to Inbound Allowed Services"`);
+        rsc.push(`add chain=ISP-Input action=drop comment="DEFAULT DROP: Drop everything else from ISP"\n`);
+
+        // ISP-Input-Allow chain
+        rsc.push(`# --- Chain: ISP-Input-Allow (Terminal Allow Chain) ---`);
+        if (allowIcmp) {
+          if (icmpLimit) {
+            rsc.push(`add chain=ISP-Input-Allow protocol=icmp limit=${icmpLimit} action=accept comment="Rate-limited ICMP"`);
+          } else {
+            rsc.push(`add chain=ISP-Input-Allow protocol=icmp action=accept comment="Allow ICMP"`);
+          }
+        }
+        rsc.push(`add chain=ISP-Input-Allow protocol=udp dst-port=${wgPort} action=accept comment="WireGuard VPN Port"`);
+        customPorts.forEach(cp => {
+          rsc.push(`add chain=ISP-Input-Allow protocol=${cp.proto} dst-port=${cp.port} action=accept comment="${cp.comment}"`);
+        });
+        rsc.push(`add chain=ISP-Input-Allow protocol=tcp dst-port=8291 src-address-list=TRUSTED-MGMT action=accept comment="Winbox from Trusted IPs only"`);
+        rsc.push(`add chain=ISP-Input-Allow protocol=tcp dst-port=22 src-address-list=TRUSTED-MGMT action=accept comment="SSH from Trusted IPs only"\n`);
+
+        // Local-Input chain
+        rsc.push(`# --- Chain: Local-Input (Traffic from LAN/VPN to Router) ---`);
+        rsc.push(`add chain=Local-Input connection-state=established,related,untracked action=accept comment="Accept Established/Related"`);
+        rsc.push(`add chain=Local-Input connection-state=invalid action=drop comment="Drop Invalid"`);
+        rsc.push(`add chain=Local-Input protocol=icmp action=accept comment="Allow ICMP"`);
+        rsc.push(`add chain=Local-Input protocol=udp dst-port=53 action=accept comment="Allow DNS UDP"`);
+        rsc.push(`add chain=Local-Input protocol=tcp dst-port=53 action=accept comment="Allow DNS TCP"`);
+        rsc.push(`add chain=Local-Input protocol=udp dst-port=67 action=accept comment="Allow DHCP Request"`);
+        rsc.push(`add chain=Local-Input protocol=udp dst-port=123 action=accept comment="Allow NTP"`);
+        rsc.push(`add chain=Local-Input in-interface-list=Management protocol=tcp dst-port=22,8291,443 action=accept comment="Admin access from Management list"`);
+        rsc.push(`add chain=Local-Input action=drop comment="DEFAULT DROP: Drop unauthorized access from LAN"\n`);
+
+        // Forward chain
+        rsc.push(`# --- Chain: forward (Transit Traffic) ---`);
+        if (fastTrack) {
+          rsc.push(`add chain=forward action=fasttrack-connection connection-state=established,related comment="FastTrack Engine"`);
+        }
+        rsc.push(`add chain=forward connection-state=established,related,untracked action=accept comment="Accept Established/Related"`);
+        rsc.push(`add chain=forward connection-state=invalid action=drop comment="Drop Invalid forward"`);
+        rsc.push(`add chain=forward in-interface-list=Local out-interface-list=ISP action=accept comment="LAN to Internet"`);
+        rsc.push(`add chain=forward in-interface-list=WG out-interface-list=Local action=accept comment="WireGuard to LAN"`);
+        rsc.push(`add chain=forward in-interface-list=Local out-interface-list=WG action=accept comment="LAN to WireGuard"`);
+        rsc.push(`add chain=forward in-interface-list=WG out-interface-list=WG action=accept comment="WireGuard Inter-Spoke Transit"`);
+        if (wgNatClients) {
+          rsc.push(`add chain=forward in-interface-list=WG out-interface-list=ISP action=accept comment="WireGuard to Internet"`);
+        }
+        if (allowDstnat) {
+          if (modDefense && defJumpForward) {
+            rsc.push(`add chain=forward connection-nat-state=dstnat action=jump jump-target=Defense-Scans comment="[2. JUMP RULE] Jump to Defense-Scans for forwarded ports (Forward DST-NAT)"`);
+          }
+          rsc.push(`add chain=forward connection-nat-state=dstnat action=accept comment="Accept DST-NAT (Port Forwarding)"`);
+        }
+        rsc.push(`add chain=forward action=drop comment="DEFAULT DROP: Drop unauthorized forward"\n`);
+
+        // NAT
+        rsc.push(`# =====================================================================`);
+        rsc.push(`# 6. NAT (Network Address Translation)`);
+        rsc.push(`# =====================================================================`);
+        rsc.push(`/ip firewall nat`);
+        if (natType === 'masquerade') {
+          rsc.push(`add chain=srcnat out-interface-list=ISP action=masquerade comment="Masquerade for ISP"`);
+        } else {
+          rsc.push(`add chain=srcnat out-interface-list=ISP action=src-nat to-addresses=${srcNatIp} comment="Static Src-NAT"`);
+        }
+        if (wgNatClients) {
+          rsc.push(`add chain=srcnat src-address=10.255.255.0/24 out-interface-list=ISP action=masquerade comment="NAT for WireGuard Subnet"`);
+        }
+        rsc.push(``);
+      }
+
+      // -------------------------------------------------------------
+      // 3. MODULE: TELEGRAM NOTIFICATIONS
+      // -------------------------------------------------------------
+      if (modTelegram) {
+        const tgEnabled = document.getElementById('tg_enabled').checked;
+        if (tgEnabled) {
+          const tgToken = document.getElementById('tg_bot_token').value.trim();
+          const tgChat = document.getElementById('tg_chat_id').value.trim();
+          const tgRouterName = translit(document.getElementById('tg_router_name').value.trim()) || 'MikroTik';
+          const tgEvtStartup = document.getElementById('tg_evt_startup').checked;
+          const tgEvtLogin = document.getElementById('tg_evt_login').checked;
+          const tgEvtNetwatch = document.getElementById('tg_evt_netwatch').checked;
+          const tgEvtDhcp = document.getElementById('tg_evt_dhcp').checked;
+          const tgNetwatchHost = document.getElementById('tg_netwatch_host').value.trim() || '8.8.8.8';
+          const tgNetwatchInterval = document.getElementById('tg_netwatch_interval').value.trim() || '15s';
+
+          rsc.push(`# =====================================================================`);
+          rsc.push(`# 7. MODULE: TELEGRAM NOTIFICATIONS (TgSend Engine)`);
+          rsc.push(`# =====================================================================`);
+          
+          // TgSend System Script
+          rsc.push(`/system script`);
+          rsc.push(`add name="TgSend" dont-require-permissions=yes source="\\`);
+          rsc.push(`    :local botToken \\"${tgToken}\\";\\`);
+          rsc.push(`    :local defaultChat \\"${tgChat}\\";\\`);
+          rsc.push(`    :local routerPrefix \\"${tgRouterName}\\";\\`);
+          rsc.push(`    :if ([:len \\$chatId] = 0) do={ :set chatId \\$defaultChat };\\`);
+          rsc.push(`    :local encodedMsg \\"\\";\\`);
+          rsc.push(`    :local fullText (\\"[\\" . \\$routerPrefix . \\"] \\" . \\$msg);\\`);
+          rsc.push(`    :for i from=0 to=([:len \\$fullText] - 1) do={\\`);
+          rsc.push(`        :local c [:pick \\$fullText \\$i (\\$i + 1)];\\`);
+          rsc.push(`        :if (\\$c = \\" \\") do={ :set encodedMsg (\\$encodedMsg . \\"%20\\") } else={\\`);
+          rsc.push(`            :if (\\$c = \\"\\\\n\\") do={ :set encodedMsg (\\$encodedMsg . \\"%0A\\") } else={\\`);
+          rsc.push(`                :if (\\$c = \\"!\\") do={ :set encodedMsg (\\$encodedMsg . \\"%21\\") } else={\\`);
+          rsc.push(`                    :if (\\$c = \\"#\\") do={ :set encodedMsg (\\$encodedMsg . \\"%23\\") } else={\\`);
+          rsc.push(`                        :if (\\$c = \\"&\\") do={ :set encodedMsg (\\$encodedMsg . \\"%26\\") } else={\\`);
+          rsc.push(`                            :set encodedMsg (\\$encodedMsg . \\$c);\\`);
+          rsc.push(`                        }\\`);
+          rsc.push(`                    }\\`);
+          rsc.push(`                }\\`);
+          rsc.push(`            }\\`);
+          rsc.push(`        };\\`);
+          rsc.push(`    };\\`);
+          rsc.push(`    :do {\\`);
+          rsc.push(`        /tool fetch url=(\\"https://api.telegram.org/bot\\" . \\$botToken . \\"/sendMessage?chat_id=\\" . \\$chatId . \\"&text=\\" . \\$encodedMsg . \\"&parse_mode=HTML\\") keep-result=no;\\`);
+          rsc.push(`    } on-error={\\`);
+          rsc.push(`        :log warning (\\"TgSend: Failed to send Telegram alert\\");\\`);
+          rsc.push(`    };" comment="Central Telegram Alert Function"\n`);
+
+          // Startup Trigger
+          if (tgEvtStartup) {
+            rsc.push(`/system scheduler`);
+            rsc.push(`add name="TgStartupAlert" start-time=startup interval=0s on-event="\\`);
+            rsc.push(`    :delay 15s;\\`);
+            rsc.push(`    :local sysUptime [/system resource get uptime];\\`);
+            rsc.push(`    :local sysVer [/system resource get version];\\`);
+            rsc.push(`    :local sysModel [/system resource get board-name];\\`);
+            rsc.push(`    /system script run TgSend msg=(\\"🚀 Router Started/Rebooted!%0AModel: \\" . \\$sysModel . \\"%0AVersion: \\" . \\$sysVer . \\"%0AUptime: \\" . \\$sysUptime);" comment="Notify on reboot"\n`);
+          }
+
+          // Netwatch Failover Trigger
+          if (tgEvtNetwatch) {
+            rsc.push(`/tool netwatch`);
+            rsc.push(`add host="${tgNetwatchHost}" interval=${tgNetwatchInterval} up-script="/system script run TgSend msg=\\"🟢 Internet Uplink UP (${tgNetwatchHost})\\";" down-script="/system script run TgSend msg=\\"🔴 CRITICAL: Internet Uplink DOWN (${tgNetwatchHost})\\";" comment="WAN Netwatch Alert"\n`);
+          }
+
+          // Security & Login Alert Trigger
+          if (tgEvtLogin) {
+            rsc.push(`/system scheduler`);
+            rsc.push(`add name="TgSecurityMonitor" interval=15s on-event="\\`);
+            rsc.push(`    :global lastSecurityLogTime;\\`);
+            rsc.push(`    :if ([:len \\$lastSecurityLogTime] = 0) do={ :set lastSecurityLogTime \\"00:00:00\\" };\\`);
+            rsc.push(`    :foreach i in=[/log find time>\\$lastSecurityLogTime] do={\\`);
+            rsc.push(`        :local logMsg [/log get \\$i message];\\`);
+            rsc.push(`        :set lastSecurityLogTime [/log get \\$i time];\\`);
+            rsc.push(`        :if (\\$logMsg ~ \\"logged in\\" || \\$logMsg ~ \\"login failure\\" || \\$logMsg ~ \\"\\[ATTACK-BAN\\]\\" || \\$logMsg ~ \\"\\[HONEYPOT-BAN\\]\\" || \\$logMsg ~ \\"\\[PSD-BAN\\]\\") do={\\`);
+            rsc.push(`            /system script run TgSend msg=(\\"🚨 Security Event:%0A\\" . \\$logMsg);\\`);
+            rsc.push(`        };\\`);
+            rsc.push(`    };" comment="Monitor admin logins & attack bans"\n`);
+          }
+
+          // DHCP Lease Trigger
+          if (tgEvtDhcp) {
+            rsc.push(`/ip dhcp-server`);
+            rsc.push(`set [find] lease-script="\\`);
+            rsc.push(`    :if (\\$leaseBound = 1) do={\\`);
+            rsc.push(`        /system script run TgSend msg=(\\"📡 New DHCP Client IP: \\" . \\$leaseActIP . \\" MAC: \\" . \\$leaseActMAC . \\" Host: \\" . \\$\\"lease-hostname\\");\\`);
+            rsc.push(`    };" comment="Notify on new DHCP client"\n`);
+          }
+        }
+      }
+
+      // -------------------------------------------------------------
+      // 4. MODULE: PORT SCAN & BRUTE-FORCE DEFENSE
+      // -------------------------------------------------------------
+      if (modDefense) {
+        const defBfEnabled = document.getElementById('def_bf_enabled').checked;
+        const defBfPorts = document.getElementById('def_bf_ports').value.trim() || '22,8291,80,443';
+        const defBfStages = parseInt(document.getElementById('def_bf_stages').value) || 4;
+        const defBfBanTime = document.getElementById('def_bf_ban_time').value;
+
+        const defPsdEnabled = document.getElementById('def_psd_enabled').checked;
+        const defPsdParams = document.getElementById('def_psd_params').value.trim() || '21,3s,3,1';
+        const defPsdBanTime = document.getElementById('def_psd_ban_time').value;
+
+        const defHoneypotEnabled = document.getElementById('def_honeypot_enabled').checked;
+        const defHoneypotPorts = document.getElementById('def_honeypot_ports').value.trim() || '21,23,445,1433,3306,3389,5900,8080';
+        const defHoneypotBanTime = document.getElementById('def_honeypot_ban_time').value;
+        const defLogEnabled = document.getElementById('def_log_enabled').checked;
+
+        rsc.push(`# =====================================================================`);
+        rsc.push(`# 8. MODULE 4: PORT SCAN & BRUTE-FORCE DEFENSE (Defense-Scans Chain)`);
+        rsc.push(`# =====================================================================`);
+        rsc.push(`/ip firewall filter`);
+        
+        // Standalone Jump Rules if Firewall module is not included
+        if (!modFirewall) {
+          rsc.push(`# [JUMP RULES] Connect Defense-Scans to your existing Input and Forward chains:`);
+          rsc.push(`add chain=input action=jump jump-target=Defense-Scans comment="Jump to Defense-Scans chain"`);
+          rsc.push(`add chain=forward connection-nat-state=dstnat action=jump jump-target=Defense-Scans comment="Jump to Defense-Scans for forwarded ports (DST-NAT)"`);
+        }
+
+        // Whitelist bypass: Never block admins
+        rsc.push(`add chain=Defense-Scans src-address-list=TRUSTED-MGMT action=return comment="Whitelist: Never block admins"`);
+        // Drop already blacklisted hosts
+        rsc.push(`add chain=Defense-Scans src-address-list=Blacklist action=drop comment="Drop already blacklisted hosts"`);
+
+        // 1. Honeypots
+        if (defHoneypotEnabled) {
+          let logOpt = defLogEnabled ? ` log=yes log-prefix="[HONEYPOT-BAN]"` : ``;
+          rsc.push(`add chain=Defense-Scans protocol=tcp dst-port=${defHoneypotPorts} action=add-src-to-address-list address-list=Blacklist address-list-timeout=${defHoneypotBanTime}${logOpt} comment="Honeypot Hit: Instant Ban"`);
+          rsc.push(`add chain=Defense-Scans protocol=tcp dst-port=${defHoneypotPorts} action=drop comment="Drop Honeypot probe"`);
+        }
+
+        // 2. PSD
+        if (defPsdEnabled) {
+          let logOpt = defLogEnabled ? ` log=yes log-prefix="[PSD-BAN]"` : ``;
+          rsc.push(`add chain=Defense-Scans protocol=tcp psd=${defPsdParams} action=add-src-to-address-list address-list=Blacklist address-list-timeout=${defPsdBanTime}${logOpt} comment="PSD: Port scan detected"`);
+          rsc.push(`add chain=Defense-Scans protocol=tcp psd=${defPsdParams} action=drop comment="Drop Port scan"`);
+        }
+
+        // 3. Brute-force cascade (Reverse order of stages)
+        if (defBfEnabled) {
+          let logOpt = defLogEnabled ? ` log=yes log-prefix="[BRUTEFORCE-BAN]"` : ``;
+          // Final stage ban
+          rsc.push(`add chain=Defense-Scans connection-state=new protocol=tcp dst-port=${defBfPorts} src-address-list=Brute-Stage-${defBfStages - 1} action=add-src-to-address-list address-list=Blacklist address-list-timeout=${defBfBanTime}${logOpt} comment="Brute-Force: Stage ${defBfStages} -> Final Ban"`);
+          rsc.push(`add chain=Defense-Scans protocol=tcp dst-port=${defBfPorts} src-address-list=Blacklist action=drop comment="Drop newly banned attacker immediately"`);
+          // Intermediate stages
+          for (let s = defBfStages - 2; s >= 1; s--) {
+            rsc.push(`add chain=Defense-Scans connection-state=new protocol=tcp dst-port=${defBfPorts} src-address-list=Brute-Stage-${s} action=add-src-to-address-list address-list=Brute-Stage-${s + 1} address-list-timeout=1m comment="Brute-Force: Stage ${s + 1}"`);
+          }
+          // Initial stage
+          rsc.push(`add chain=Defense-Scans connection-state=new protocol=tcp dst-port=${defBfPorts} action=add-src-to-address-list address-list=Brute-Stage-1 address-list-timeout=1m comment="Brute-Force: Stage 1"`);
+        }
+      }
+
+      // -------------------------------------------------------------
+      // 5. MODULE: SYSTEM HARDENING & DOH
+      // -------------------------------------------------------------
+      if (modSystem) {
+        const sysMndpHide = document.getElementById('sys_mndp_hide').checked;
+        const sysMacSecure = document.getElementById('sys_mac_server_secure').checked;
+        const sysDisableInsecure = document.getElementById('sys_disable_insecure').checked;
+        const sysRestrictMgmt = document.getElementById('sys_restrict_mgmt').checked;
+        const sysNtpEnabled = document.getElementById('sys_ntp_enabled').checked;
+        const sysNtpServers = document.getElementById('sys_ntp_servers').value.split(',').map(s => s.trim()).filter(Boolean);
+        const sysTimezone = document.getElementById('sys_timezone').value.trim() || 'Europe/Moscow';
+
+        rsc.push(`\n# =====================================================================`);
+        rsc.push(`# 9. MODULE 5: SYSTEM HARDENING (L2, MAC-Server, IP Services, NTP)`);
+        rsc.push(`# =====================================================================`);
+
+        if (sysMndpHide) {
+          rsc.push(`# MNDP / CDP / LLDP discovery isolation (Hide router from ISP network)`);
+          rsc.push(`/ip neighbor discovery-settings set discover-interface-list=Management\n`);
+        }
+
+        if (sysMacSecure) {
+          rsc.push(`# L2 Security: Restrict MAC-Winbox / MAC-Telnet to Management interface list`);
+          rsc.push(`/tool mac-server set allowed-interface-list=Management`);
+          rsc.push(`/tool mac-server mac-winbox set allowed-interface-list=Management`);
+          rsc.push(`/tool mac-server ping set enabled=no\n`);
+        }
+
+        if (sysDisableInsecure || sysRestrictMgmt) {
+          rsc.push(`# Hardening IP Services (/ip service)`);
+          rsc.push(`/ip service`);
+          if (sysDisableInsecure) {
+            rsc.push(`set telnet disabled=yes`);
+            rsc.push(`set ftp disabled=yes`);
+            rsc.push(`set www disabled=yes`);
+            rsc.push(`set api disabled=yes`);
+            rsc.push(`set api-ssl disabled=yes`);
+          }
+          if (sysRestrictMgmt && trustedSubnets.length > 0) {
+            const subnetsStr = trustedSubnets.join(',');
+            rsc.push(`set winbox address="${subnetsStr}"`);
+            rsc.push(`set ssh address="${subnetsStr}"`);
+          }
+          rsc.push(``);
+        }
+
+        if (sysNtpEnabled) {
+          rsc.push(`# Accurate time synchronization (NTP client) and timezone`);
+          rsc.push(`/system clock set time-zone-name="${sysTimezone}"`);
+          rsc.push(`/system ntp client set enabled=yes`);
+          if (sysNtpServers.length > 0) {
+            rsc.push(`/system ntp client servers`);
+            sysNtpServers.forEach(srv => {
+              rsc.push(`add address="${srv}"`);
+            });
+          }
+          rsc.push(``);
+        }
+
+        // 10. DoH & Redirection
+        const sysDohEnabled = document.getElementById('sys_doh_enabled').checked;
+        const sysDohProvider = document.getElementById('sys_doh_provider').value;
+        const sysDnsCache = document.getElementById('sys_dns_cache').value;
+        const sysDnsRedirect = document.getElementById('sys_dns_redirect').checked;
+
+        if (sysDohEnabled) {
+          rsc.push(`# =====================================================================`);
+          rsc.push(`# 10. MODULE 5: SECURE DNS OVER HTTPS (DoH)`);
+          rsc.push(`# =====================================================================`);
+          rsc.push(`# Enable trusted root CA certificates (Required for RouterOS v7 DoH)`);
+          rsc.push(`/certificate enable-ssl-certificate`);
+
+          let dohUrl = 'https://cloudflare-dns.com/dns-query';
+          let bootstrapIps = ['1.1.1.1', '1.0.0.1'];
+          let dohHost = 'cloudflare-dns.com';
+
+          if (sysDohProvider === 'google') {
+            dohUrl = 'https://dns.google/dns-query';
+            bootstrapIps = ['8.8.8.8', '8.8.4.4'];
+            dohHost = 'dns.google';
+          } else if (sysDohProvider === 'quad9') {
+            dohUrl = 'https://dns.quad9.net/dns-query';
+            bootstrapIps = ['9.9.9.9', '149.112.112.112'];
+            dohHost = 'dns.quad9.net';
+          }
+
+          rsc.push(`# Static bootstrap DNS records for DoH provider hostname resolution`);
+          rsc.push(`/ip dns static`);
+          bootstrapIps.forEach(ip => {
+            rsc.push(`add name="${dohHost}" address="${ip}" comment="DoH Bootstrap IP"`);
+          });
+
+          rsc.push(`/ip dns set allow-remote-requests=yes cache-size=${sysDnsCache} use-doh-server="${dohUrl}" verify-doh-cert=yes\n`);
+
+          if (sysDnsRedirect) {
+            rsc.push(`# DNS Redirection: Force all LAN DNS queries to local DoH (Anti-leak)`);
+            rsc.push(`/ip firewall nat`);
+            rsc.push(`add chain=dstnat in-interface-list=Local protocol=udp dst-port=53 action=redirect to-ports=53 comment="Force all LAN UDP DNS queries to local DoH"`);
+            rsc.push(`add chain=dstnat in-interface-list=Local protocol=tcp dst-port=53 action=redirect to-ports=53 comment="Force all LAN TCP DNS queries to local DoH"\n`);
+          }
+        }
+      }
+
+      const finalScript = rsc.join('\n');
+      document.getElementById('outputCode').textContent = finalScript;
+      document.getElementById('stats-badge').textContent = `${rsc.length} строк (${activeCount} из 5 модулей)`;
+    }
+
+    // Copy test command for CLI
+    function copyTestCommand() {
+      const token = document.getElementById('tg_bot_token').value.trim();
+      const chat = document.getElementById('tg_chat_id').value.trim();
+      const cmd = `/tool fetch url="https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat}&text=%F0%9F%A7%AA%20MikroTik%20Telegram%20Test%20Alert" keep-result=no`;
+      navigator.clipboard.writeText(cmd).then(() => {
+        const toast = document.getElementById('toast');
+        toast.textContent = 'Тестовая команда скопирована в буфер!';
+        toast.style.opacity = '1';
+        setTimeout(() => toast.style.opacity = '0', 2500);
+      });
+    }
+
+    // Copy to clipboard
+    function copyScript() {
+      const code = document.getElementById('outputCode').textContent;
+      navigator.clipboard.writeText(code).then(() => {
+        const toast = document.getElementById('toast');
+        toast.style.opacity = '1';
+        setTimeout(() => toast.style.opacity = '0', 2000);
+      });
+    }
+
+    // Download file
+    function downloadScript() {
+      const code = document.getElementById('outputCode').textContent;
+      const blob = new Blob([code], { type: 'text/plain;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'mikrotik_complete_config.rsc';
+      a.click();
+    }
+
+    // Init
+    window.addEventListener('DOMContentLoaded', () => {
+      regenRouterKeys();
+      addPeerRow({ name: 'Branch Office (Site B)', tunIp: '10.255.255.2', remoteLan: '192.168.2.0/24', keepalive: '25s' });
+      addPeerRow({ name: 'Mobile Admin (iPhone)', tunIp: '10.255.255.3', remoteLan: '', keepalive: '25s' });
+      updateScript();
+    });
+  </script>
+</body>
+</html>

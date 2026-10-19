@@ -25,6 +25,8 @@ wget -qO chr.sh https://raw.githubusercontent.com/neosloter/MikrotikScripts/main
 ### 2. [MikroTik Configuration Tool (RouterOS v7)](./Mikrotik%20conf%20tool)
 Интерактивный веб-конфигуратор и генератор боевых скриптов `.rsc` для оборудования MikroTik под управлением **RouterOS v7**.
 
+**🌐 Запустить онлайн:** [Открыть веб-конфигуратор на GitHub Pages](https://neosloter.github.io/MikrotikScripts/)
+
 **Включает 5 модулей:**
 * **🛡️ Firewall:** Default-Drop архитектура, кастомные цепочки `ISP-Input`, `ISP-Input-Allow`, `Local-Input`, RAW, FastTrack, NAT.
 * **⚡ WireGuard:** Hub-and-Spoke, RoadWarrior, MSS Clamping, автогенерация ключей Curve25519 в браузере и экспорт `.conf` файлов.
