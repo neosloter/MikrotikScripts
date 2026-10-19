@@ -21,3 +21,16 @@ wget -qO chr.sh https://raw.githubusercontent.com/neosloter/MikrotikScripts/main
 ```
 
 Подробная документация и описание работы доступны в папке [**chr-install**](./chr-install).
+
+### 2. [MikroTik Configuration Tool (RouterOS v7)](./Mikrotik%20conf%20tool)
+Интерактивный веб-конфигуратор и генератор боевых скриптов `.rsc` для оборудования MikroTik под управлением **RouterOS v7**.
+
+**Включает 5 модулей:**
+* **🛡️ Firewall:** Default-Drop архитектура, кастомные цепочки `ISP-Input`, `ISP-Input-Allow`, `Local-Input`, RAW, FastTrack, NAT.
+* **⚡ WireGuard:** Hub-and-Spoke, RoadWarrior, MSS Clamping, автогенерация ключей Curve25519 в браузере и экспорт `.conf` файлов.
+* **🤖 Telegram:** Движок `TgSend` через `/tool fetch` с оповещениями о перезагрузках, входах, брутфорсе, падении аплинков (Netwatch) и DHCP-клиентах.
+* **🛑 Defense:** Каскадный бан перебора паролей (обратный порядок стадий), Port Scan Detection (PSD), Honeypots и Whitelist bypass.
+* **🔒 System & DoH:** Сокрытие MNDP от провайдера, изоляция L2 MAC-Server, харденинг `/ip service`, NTP и DNS over HTTPS.
+
+Подробная документация и инструкция доступны в папке [**Mikrotik conf tool**](./Mikrotik%20conf%20tool).
+
