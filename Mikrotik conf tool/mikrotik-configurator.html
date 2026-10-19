@@ -500,9 +500,12 @@
               <input type="text" id="tg_router_name" value="MikroTik-HQ" class="form-input text-xs" oninput="updateScript()">
               <span class="text-[10px] text-slate-500">Отображается в заголовке каждого сообщения</span>
             </div>
-            <div class="flex items-end">
-              <button onclick="copyTestCommand()" class="w-full text-xs bg-slate-800 hover:bg-slate-700 text-cyan-300 font-medium py-2 px-3 rounded-lg border border-slate-700 transition flex items-center justify-center gap-1.5">
-                🧪 Скопировать CLI тест для терминала
+            <div class="flex items-end gap-2">
+              <button onclick="copyTestCommand()" class="w-1/2 text-xs bg-slate-800 hover:bg-slate-700 text-cyan-300 font-medium py-2 px-2.5 rounded-lg border border-slate-700 transition flex items-center justify-center gap-1 whitespace-nowrap" title="Тест прямого запроса /tool fetch в Telegram">
+                🧪 Тест fetch
+              </button>
+              <button onclick="copyTgSendTestCommand()" class="w-1/2 text-xs bg-slate-800 hover:bg-slate-700 text-emerald-300 font-medium py-2 px-2.5 rounded-lg border border-slate-700 transition flex items-center justify-center gap-1 whitespace-nowrap" title="Тест вызова функции TgSend в терминале">
+                ⚡ Тест TgSend
               </button>
             </div>
           </div>
@@ -1828,72 +1831,78 @@
           
           // TgSend System Script
           rsc.push(`/system script`);
-          rsc.push(`add name="TgSend" dont-require-permissions=yes source="\\`);
-          rsc.push(`    :local botToken \\"${tgToken}\\";\\`);
-          rsc.push(`    :local defaultChat \\"${tgChat}\\";\\`);
-          rsc.push(`    :local routerPrefix \\"${tgRouterName}\\";\\`);
-          rsc.push(`    :if ([:len \\$chatId] = 0) do={ :set chatId \\$defaultChat };\\`);
-          rsc.push(`    :local encodedMsg \\"\\";\\`);
-          rsc.push(`    :local fullText (\\"[\\" . \\$routerPrefix . \\"] \\" . \\$msg);\\`);
-          rsc.push(`    :for i from=0 to=([:len \\$fullText] - 1) do={\\`);
-          rsc.push(`        :local c [:pick \\$fullText \\$i (\\$i + 1)];\\`);
-          rsc.push(`        :if (\\$c = \\" \\") do={ :set encodedMsg (\\$encodedMsg . \\"%20\\") } else={\\`);
-          rsc.push(`            :if (\\$c = \\"\\\\n\\") do={ :set encodedMsg (\\$encodedMsg . \\"%0A\\") } else={\\`);
-          rsc.push(`                :if (\\$c = \\"!\\") do={ :set encodedMsg (\\$encodedMsg . \\"%21\\") } else={\\`);
-          rsc.push(`                    :if (\\$c = \\"#\\") do={ :set encodedMsg (\\$encodedMsg . \\"%23\\") } else={\\`);
-          rsc.push(`                        :if (\\$c = \\"&\\") do={ :set encodedMsg (\\$encodedMsg . \\"%26\\") } else={\\`);
-          rsc.push(`                            :set encodedMsg (\\$encodedMsg . \\$c);\\`);
-          rsc.push(`                        }\\`);
-          rsc.push(`                    }\\`);
-          rsc.push(`                }\\`);
-          rsc.push(`            }\\`);
-          rsc.push(`        };\\`);
-          rsc.push(`    };\\`);
-          rsc.push(`    :do {\\`);
-          rsc.push(`        /tool fetch url=(\\"https://api.telegram.org/bot\\" . \\$botToken . \\"/sendMessage?chat_id=\\" . \\$chatId . \\"&text=\\" . \\$encodedMsg . \\"&parse_mode=HTML\\") keep-result=no;\\`);
-          rsc.push(`    } on-error={\\`);
-          rsc.push(`        :log warning (\\"TgSend: Failed to send Telegram alert\\");\\`);
-          rsc.push(`    };" comment="Central Telegram Alert Function"\n`);
+          rsc.push(`remove [find name="TgSend"]`);
+
+          const tgScriptCode = [
+            `:global tgMsg;`,
+            `:global tgChat;`,
+            `:local botToken "${tgToken}";`,
+            `:local defaultChat "${tgChat}";`,
+            `:local routerPrefix "${tgRouterName}";`,
+            `:local text $msg;`,
+            `:if ([:len $text] = 0) do={ :set text $tgMsg; :set tgMsg ""; };`,
+            `:if ([:len $text] = 0) do={ :set text "Test notification from MikroTik"; };`,
+            `:local targetChat $chatId;`,
+            `:if ([:len $targetChat] = 0) do={ :set targetChat $tgChat; :set tgChat ""; };`,
+            `:if ([:len $targetChat] = 0) do={ :set targetChat $defaultChat; };`,
+            `:local fullText ("[" . $routerPrefix . "] " . $text);`,
+            `:local encodedMsg "";`,
+            `:if ([:len $fullText] > 0) do={`,
+            `    :for i from=0 to=([:len $fullText] - 1) do={`,
+            `        :local c [:pick $fullText $i ($i + 1)];`,
+            `        :local repl $c;`,
+            `        :if ($c = " ") do={ :set repl "%20"; };`,
+            `        :if ($c = "\\n") do={ :set repl "%0A"; };`,
+            `        :if ($c = "\\r") do={ :set repl ""; };`,
+            `        :if ($c = "#") do={ :set repl "%23"; };`,
+            `        :if ($c = "&") do={ :set repl "%26"; };`,
+            `        :if ($c = "?") do={ :set repl "%3F"; };`,
+            `        :if ($c = "+") do={ :set repl "%2B"; };`,
+            `        :if ($c = "%") do={ :set repl "%25"; };`,
+            `        :if ($c = "/") do={ :set repl "%2F"; };`,
+            `        :if ($c = "\\\\") do={ :set repl "%5C"; };`,
+            `        :if ($c = "\\"") do={ :set repl "%22"; };`,
+            `        :set encodedMsg ($encodedMsg . $repl);`,
+            `    };`,
+            `};`,
+            `:do {`,
+            `    /tool fetch url=("https://api.telegram.org/bot" . $botToken . "/sendMessage?chat_id=" . $targetChat . "&text=" . $encodedMsg) keep-result=no check-certificate=no;`,
+            `} on-error={`,
+            `    :log warning ("TgSend: Failed to send Telegram alert to chat " . $targetChat);`,
+            `};`
+          ];
+
+          const escapedTgSource = tgScriptCode
+            .join('\\r\\n')
+            .replace(/"/g, '\\"');
+
+          rsc.push(`add dont-require-permissions=yes name="TgSend" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive source="${escapedTgSource}" comment="Central Telegram Alert Function"\n`);
 
           // Startup Trigger
           if (tgEvtStartup) {
             rsc.push(`/system scheduler`);
-            rsc.push(`add name="TgStartupAlert" start-time=startup interval=0s on-event="\\`);
-            rsc.push(`    :delay 15s;\\`);
-            rsc.push(`    :local sysUptime [/system resource get uptime];\\`);
-            rsc.push(`    :local sysVer [/system resource get version];\\`);
-            rsc.push(`    :local sysModel [/system resource get board-name];\\`);
-            rsc.push(`    /system script run TgSend msg=(\\"🚀 Router Started/Rebooted!%0AModel: \\" . \\$sysModel . \\"%0AVersion: \\" . \\$sysVer . \\"%0AUptime: \\" . \\$sysUptime);" comment="Notify on reboot"\n`);
+            rsc.push(`remove [find name="TgStartupAlert"]`);
+            rsc.push(`add name="TgStartupAlert" start-time=startup interval=0s on-event=":delay 15s;\\r\\n:local sysUptime [/system resource get uptime];\\r\\n:local sysVer [/system resource get version];\\r\\n:local sysModel [/system resource get board-name];\\r\\n:global tgMsg (\\"Router Started/Rebooted!\\\\nModel: \\" . \\$sysModel . \\"\\\\nVersion: \\" . \\$sysVer . \\"\\\\nUptime: \\" . \\$sysUptime);\\r\\n/system script run TgSend;" comment="Notify on reboot"\n`);
           }
 
           // Netwatch Failover Trigger
           if (tgEvtNetwatch) {
             rsc.push(`/tool netwatch`);
-            rsc.push(`add host="${tgNetwatchHost}" interval=${tgNetwatchInterval} up-script="/system script run TgSend msg=\\"🟢 Internet Uplink UP (${tgNetwatchHost})\\";" down-script="/system script run TgSend msg=\\"🔴 CRITICAL: Internet Uplink DOWN (${tgNetwatchHost})\\";" comment="WAN Netwatch Alert"\n`);
+            rsc.push(`remove [find host="${tgNetwatchHost}"]`);
+            rsc.push(`add host="${tgNetwatchHost}" interval=${tgNetwatchInterval} up-script=":global tgMsg \\"Internet Uplink UP (${tgNetwatchHost})\\"; /system script run TgSend;" down-script=":global tgMsg \\"CRITICAL: Internet Uplink DOWN (${tgNetwatchHost})\\"; /system script run TgSend;" comment="WAN Netwatch Alert"\n`);
           }
 
           // Security & Login Alert Trigger
           if (tgEvtLogin) {
             rsc.push(`/system scheduler`);
-            rsc.push(`add name="TgSecurityMonitor" interval=15s on-event="\\`);
-            rsc.push(`    :global lastSecurityLogTime;\\`);
-            rsc.push(`    :if ([:len \\$lastSecurityLogTime] = 0) do={ :set lastSecurityLogTime \\"00:00:00\\" };\\`);
-            rsc.push(`    :foreach i in=[/log find time>\\$lastSecurityLogTime] do={\\`);
-            rsc.push(`        :local logMsg [/log get \\$i message];\\`);
-            rsc.push(`        :set lastSecurityLogTime [/log get \\$i time];\\`);
-            rsc.push(`        :if (\\$logMsg ~ \\"logged in\\" || \\$logMsg ~ \\"login failure\\" || \\$logMsg ~ \\"\\[ATTACK-BAN\\]\\" || \\$logMsg ~ \\"\\[HONEYPOT-BAN\\]\\" || \\$logMsg ~ \\"\\[PSD-BAN\\]\\") do={\\`);
-            rsc.push(`            /system script run TgSend msg=(\\"🚨 Security Event:%0A\\" . \\$logMsg);\\`);
-            rsc.push(`        };\\`);
-            rsc.push(`    };" comment="Monitor admin logins & attack bans"\n`);
+            rsc.push(`remove [find name="TgSecurityMonitor"]`);
+            rsc.push(`add name="TgSecurityMonitor" interval=15s on-event=":global lastSecurityLogTime;\\r\\n:if ([:len \\$lastSecurityLogTime] = 0) do={ :set lastSecurityLogTime \\"00:00:00\\" };\\r\\n:foreach i in=[/log find time>\\$lastSecurityLogTime] do={\\r\\n    :local logMsg [/log get \\$i message];\\r\\n    :set lastSecurityLogTime [/log get \\$i time];\\r\\n    :if (\\$logMsg ~ \\"logged in\\" || \\$logMsg ~ \\"login failure\\" || \\$logMsg ~ \\"\\[ATTACK-BAN\\]\\" || \\$logMsg ~ \\"\\[HONEYPOT-BAN\\]\\" || \\$logMsg ~ \\"\\[PSD-BAN\\]\\") do={\\r\\n        :global tgMsg (\\"Security Event:\\\\n\\" . \\$logMsg);\\r\\n        /system script run TgSend;\\r\\n    };\\r\\n};" comment="Monitor admin logins & attack bans"\n`);
           }
 
           // DHCP Lease Trigger
           if (tgEvtDhcp) {
             rsc.push(`/ip dhcp-server`);
-            rsc.push(`set [find] lease-script="\\`);
-            rsc.push(`    :if (\\$leaseBound = 1) do={\\`);
-            rsc.push(`        /system script run TgSend msg=(\\"📡 New DHCP Client IP: \\" . \\$leaseActIP . \\" MAC: \\" . \\$leaseActMAC . \\" Host: \\" . \\$\\"lease-hostname\\");\\`);
-            rsc.push(`    };" comment="Notify on new DHCP client"\n`);
+            rsc.push(`set [find] lease-script=":if (\\$leaseBound = 1) do={\\r\\n    :global tgMsg (\\"New DHCP Client IP: \\" . \\$leaseActIP . \\" MAC: \\" . \\$leaseActMAC . \\" Host: \\" . \\$\\"lease-hostname\\");\\r\\n    /system script run TgSend;\\r\\n};"\n`);
           }
         }
       }
@@ -2074,10 +2083,20 @@
     function copyTestCommand() {
       const token = document.getElementById('tg_bot_token').value.trim();
       const chat = document.getElementById('tg_chat_id').value.trim();
-      const cmd = `/tool fetch url="https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat}&text=%F0%9F%A7%AA%20MikroTik%20Telegram%20Test%20Alert" keep-result=no`;
+      const cmd = `/tool fetch url="https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat}&text=MikroTik%20Telegram%20Direct%20Test%20OK" keep-result=no check-certificate=no;`;
       navigator.clipboard.writeText(cmd).then(() => {
         const toast = document.getElementById('toast');
-        toast.textContent = 'Тестовая команда скопирована в буфер!';
+        toast.textContent = 'Прямая команда /tool fetch скопирована в буфер!';
+        toast.style.opacity = '1';
+        setTimeout(() => toast.style.opacity = '0', 2500);
+      });
+    }
+
+    function copyTgSendTestCommand() {
+      const cmd = `:global tgMsg "MikroTik TgSend Function Test OK"; /system script run TgSend;`;
+      navigator.clipboard.writeText(cmd).then(() => {
+        const toast = document.getElementById('toast');
+        toast.textContent = 'Команда проверки TgSend скопирована в буфер!';
         toast.style.opacity = '1';
         setTimeout(() => toast.style.opacity = '0', 2500);
       });
