@@ -76,4 +76,3 @@ python3 -m http.server 8080
 
 * [`index.html`](./index.html) — Интерактивный генератор конфигурации RouterOS v7.
 * [`mikrotik-configurator.html`](./mikrotik-configurator.html) — Оригинал веб-конфигуратора.
-* [`chr_cloud_security.rsc`](./chr_cloud_security.rsc) — Готовый скрипт защиты для облачного CHR (SSTP, API-SSL, Defense).
