@@ -316,9 +316,10 @@
           <div class="flex gap-3">
             <div class="text-blue-400 text-lg">⚡</div>
             <div>
-              <strong class="text-blue-300 font-semibold">Модуль WireGuard (RouterOS v7):</strong>
-              Поддержка объединения филиалов (Site-to-Site Hub-and-Spoke), подключение сотрудников (RoadWarrior) и PBR-маршрутизация.
-              Включает генератор ключей Curve25519 в браузере, MSS Clamping (защита от зависания HTTPS) и автомаршрутизацию подсетей.
+              <strong class="text-blue-300 font-semibold">Модуль WireGuard Server (RouterOS v7):</strong>
+              Поддержка двух типов настроек: 
+              <span class="text-emerald-300 font-medium">1) Клиентский доступ</span> (ПК, смартфоны с выгрузкой <code class="text-white">.conf</code> и клиентские роутеры MikroTik с экспортом <code class="text-white">.rsc</code>);
+              <span class="text-cyan-300 font-medium">2) Site-to-Site</span> (объединение офисов и подсетей LAN-to-LAN с генерацией скриптов для роутеров филиалов).
             </div>
           </div>
           <button onclick="selectOnlyModule('wireguard')" class="shrink-0 text-[11px] bg-blue-900/60 hover:bg-blue-800 text-cyan-300 px-3 py-1.5 rounded-lg border border-blue-700/80 transition flex items-center gap-1.5 whitespace-nowrap">
@@ -326,11 +327,11 @@
           </button>
         </div>
 
-        <!-- WireGuard Role & Interface Card -->
+        <!-- WireGuard Server Interface Card -->
         <div class="bg-[#131c2e] border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
           <div class="flex items-center justify-between">
             <h2 class="text-sm font-bold text-white flex items-center gap-2">
-              <span class="w-2 h-2 rounded-full bg-cyan-400"></span> 1. Роль роутера и параметры интерфейса
+              <span class="w-2 h-2 rounded-full bg-cyan-400"></span> 1. Параметры WireGuard Сервера (Центральный роутер)
             </h2>
             <button onclick="regenRouterKeys()" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-cyan-300 px-2.5 py-1 rounded border border-slate-700 transition">
               🎲 Сгенерировать ключи
@@ -339,15 +340,6 @@
 
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label class="block text-xs font-medium text-slate-400 mb-1">Сценарий использования</label>
-              <select id="wg_role" class="form-input text-xs" onchange="onWgRoleChange()">
-                <option value="hub" selected>🏢 Hub (Центральный сервер / Офис)</option>
-                <option value="spoke">🏠 Spoke (Филиал за NAT)</option>
-                <option value="roadwarrior">📱 RoadWarrior (Сервер для сотрудников)</option>
-                <option value="pbr">🌐 PBR Клиент (Выборочный VPN шлюз)</option>
-              </select>
-            </div>
-            <div>
               <label class="block text-xs font-medium text-slate-400 mb-1">Имя интерфейса</label>
               <input type="text" id="wg_iface" value="wg0" class="form-input text-xs font-mono" oninput="updateScript()">
             </div>
@@ -355,13 +347,23 @@
               <label class="block text-xs font-medium text-slate-400 mb-1">UDP Listen Port</label>
               <input type="number" id="wg_port" value="51820" class="form-input text-xs font-mono" oninput="updateScript()">
             </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Внешний IP / DDNS сервера (Endpoint)</label>
+              <input type="text" id="wg_hub_endpoint" value="203.0.113.10" class="form-input text-xs font-mono text-cyan-300" placeholder="vpn.example.com" oninput="updateScript()">
+              <span class="text-[10px] text-slate-500">Адрес для подключения клиентов и филиалов</span>
+            </div>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label class="block text-xs font-medium text-slate-400 mb-1">Туннельный IP роутера</label>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Туннельный IP сервера</label>
               <input type="text" id="wg_tunnel_ip" value="10.255.255.1/24" class="form-input text-xs font-mono" oninput="updateScript()">
-              <span class="text-[10px] text-slate-500">Адрес на интерфейсе WireGuard</span>
+              <span class="text-[10px] text-slate-500">Адрес роутера внутри VPN сети</span>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Локальная сеть сервера (Head Office LAN)</label>
+              <input type="text" id="wg_local_lan" value="192.168.1.0/24" class="form-input text-xs font-mono" oninput="updateScript()">
+              <span class="text-[10px] text-slate-500">Сеть офиса для маршрутизации клиентам и филиалам</span>
             </div>
             <div>
               <label class="block text-xs font-medium text-slate-400 mb-1">MTU интерфейса</label>
@@ -370,20 +372,16 @@
                 <option value="1280">1280 (Безопасный / PPPoE / IPv6)</option>
               </select>
             </div>
-            <div id="wg_endpoint_container" style="display:none;">
-              <label class="block text-xs font-medium text-slate-400 mb-1">Endpoint Hub (IP / DDNS)</label>
-              <input type="text" id="wg_hub_endpoint" value="203.0.113.10" class="form-input text-xs font-mono" placeholder="vpn.example.com" oninput="updateScript()">
-            </div>
           </div>
 
           <!-- Keys Row -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
             <div>
-              <label class="block text-xs font-medium text-slate-400 mb-1">Private Key (Приватный ключ роутера)</label>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Private Key (Приватный ключ сервера)</label>
               <input type="text" id="wg_private_key" class="form-input text-xs font-mono text-cyan-300" placeholder="Генерируется автоматически" oninput="updateScript()">
             </div>
             <div>
-              <label class="block text-xs font-medium text-slate-400 mb-1">Public Key (Публичный ключ роутера)</label>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Public Key (Публичный ключ сервера)</label>
               <input type="text" id="wg_public_key" class="form-input text-xs font-mono text-emerald-400" placeholder="Генерируется автоматически" oninput="updateScript()">
             </div>
           </div>
@@ -398,8 +396,8 @@
             <label class="flex items-start gap-2.5 p-3 rounded-lg bg-slate-900/60 border border-slate-800/80 cursor-pointer">
               <input type="checkbox" id="wg_mss_clamping" checked onchange="updateScript()" class="mt-0.5 rounded text-cyan-500 focus:ring-0">
               <div>
-                <span class="font-medium text-slate-200">MSS Clamping (Mangle Change-MSS)</span>
-                <p class="text-[11px] text-slate-400 mt-0.5">Принудительно подрезает TCP MSS под 1380, предотвращая зависание веб-страниц при PMTU Blackhole</p>
+                <span class="font-medium text-slate-200">MSS Clamping (Mangle Change-MSS 1380)</span>
+                <p class="text-[11px] text-slate-400 mt-0.5">Предотвращает зависание HTTPS-страниц и туннелей из-за фрагментации пакетов (PMTU Blackhole)</p>
               </div>
             </label>
             <label class="flex items-start gap-2.5 p-3 rounded-lg bg-slate-900/60 border border-slate-800/80 cursor-pointer">
@@ -412,19 +410,41 @@
           </div>
         </div>
 
-        <!-- Peers List Card -->
+        <!-- SECTION 1: Clients (PC, Phones & Client MikroTiks) -->
         <div class="bg-[#131c2e] border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
-          <div class="flex items-center justify-between">
-            <h2 class="text-sm font-bold text-white flex items-center gap-2">
-              <span class="w-2 h-2 rounded-full bg-cyan-400"></span> 3. Пиры (Peers: филиалы и клиенты)
-            </h2>
-            <button onclick="addPeerRow()" class="text-xs bg-cyan-600 hover:bg-cyan-500 text-white font-medium px-3 py-1.5 rounded-lg transition">
-              + Добавить пир
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h2 class="text-sm font-bold text-white flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-400"></span> 3. Настройка 1: Клиентский доступ (RoadWarrior)
+              </h2>
+              <p class="text-[11px] text-slate-400 mt-0.5">Для удаленных сотрудников (ПК, смартфоны) и клиентских роутеров MikroTik (с генерацией .conf и RouterOS .rsc)</p>
+            </div>
+            <button onclick="addClient()" class="text-xs bg-emerald-700 hover:bg-emerald-600 text-white font-medium px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 self-start sm:self-auto">
+              + Добавить клиента
             </button>
           </div>
 
-          <div id="peers-container" class="space-y-4">
-            <!-- Peers dynamically added here -->
+          <div id="wg-clients-container" class="space-y-4">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- SECTION 2: Site-to-Site Branches -->
+        <div class="bg-[#131c2e] border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h2 class="text-sm font-bold text-white flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-blue-400"></span> 4. Настройка 2: Объединение сетей Site-to-Site (Филиалы MikroTik)
+              </h2>
+              <p class="text-[11px] text-slate-400 mt-0.5">Объединение локальных сетей между роутерами (LAN-to-LAN маршрутизация и экспорт полного .rsc скрипта для филиала)</p>
+            </div>
+            <button onclick="addSite()" class="text-xs bg-blue-700 hover:bg-blue-600 text-white font-medium px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 self-start sm:self-auto">
+              + Добавить филиал (Site-to-Site)
+            </button>
+          </div>
+
+          <div id="wg-sites-container" class="space-y-4">
+            <!-- Dynamically populated -->
           </div>
         </div>
 
@@ -953,101 +973,167 @@
       updateScript();
     }
 
-    // Peer Management
-    let peerCounter = 0;
-    const peers = [];
+    // ============================================================
+    // WireGuard Modal Management
+    // ============================================================
+    let modalCurrentCode = '';
+    let modalCurrentFileName = '';
 
-    function addPeerRow(initData = null) {
-      const id = ++peerCounter;
+    function openWgModal({ icon, title, desc, code, fileName, status }) {
+      modalCurrentCode = code;
+      modalCurrentFileName = fileName;
+      document.getElementById('wg-modal-icon').textContent = icon || '📋';
+      document.getElementById('wg-modal-title').textContent = title || 'Конфигурация';
+      document.getElementById('wg-modal-desc').textContent = desc || '';
+      document.getElementById('wg-modal-code').textContent = code;
+      document.getElementById('wg-modal-status').textContent = status || '';
+      document.getElementById('wg-modal').classList.remove('hidden');
+    }
+
+    function closeWgModal() {
+      document.getElementById('wg-modal').classList.add('hidden');
+    }
+
+    function copyWgModalCode() {
+      if (!modalCurrentCode) return;
+      navigator.clipboard.writeText(modalCurrentCode).then(() => {
+        const st = document.getElementById('wg-modal-status');
+        const old = st.textContent;
+        st.textContent = '✅ Скопировано в буфер обмена!';
+        st.classList.add('text-emerald-400');
+        setTimeout(() => {
+          st.textContent = old;
+          st.classList.remove('text-emerald-400');
+        }, 2000);
+      });
+    }
+
+    function downloadWgModalCode() {
+      if (!modalCurrentCode) return;
+      const blob = new Blob([modalCurrentCode], { type: 'text/plain;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = modalCurrentFileName || 'wireguard_config.txt';
+      a.click();
+    }
+
+    // ============================================================
+    // 1. WireGuard Clients Management (RoadWarrior & MikroTik Clients)
+    // ============================================================
+    let clientCounter = 0;
+    const wgClients = [];
+
+    function addClient(initData = null) {
+      const id = ++clientCounter;
       const kp = generateWgKeyPair();
-      const peer = {
+      const client = {
         id: id,
-        name: initData?.name || `Peer-${id}`,
+        name: initData?.name || `Client-${id}`,
+        clientType: initData?.clientType || (id === 2 ? 'mikrotik' : 'generic'),
+        tunIp: initData?.tunIp || `10.255.255.${id + 1}`,
+        routeMode: initData?.routeMode || (id === 2 ? 'split' : 'all'),
         privKey: initData?.privKey || kp.privateKey,
         pubKey: initData?.pubKey || kp.publicKey,
-        tunIp: initData?.tunIp || `10.255.255.${id + 1}`,
-        remoteLan: initData?.remoteLan || (id === 1 ? '192.168.2.0/24' : ''),
-        endpoint: initData?.endpoint || '',
         keepalive: initData?.keepalive || '25s'
       };
-      peers.push(peer);
-      renderPeers();
+      wgClients.push(client);
+      renderClients();
       updateScript();
     }
 
-    function removePeer(id) {
-      const idx = peers.findIndex(p => p.id === id);
+    function removeClient(id) {
+      const idx = wgClients.findIndex(c => c.id === id);
       if (idx !== -1) {
-        peers.splice(idx, 1);
-        renderPeers();
+        wgClients.splice(idx, 1);
+        renderClients();
         updateScript();
       }
     }
 
-    function regenPeerKeys(id) {
-      const p = peers.find(p => p.id === id);
-      if (p) {
+    function regenClientKeys(id) {
+      const c = wgClients.find(x => x.id === id);
+      if (c) {
         const kp = generateWgKeyPair();
-        p.privKey = kp.privateKey;
-        p.pubKey = kp.publicKey;
-        renderPeers();
+        c.privKey = kp.privateKey;
+        c.pubKey = kp.publicKey;
+        renderClients();
         updateScript();
       }
     }
 
-    function renderPeers() {
-      const container = document.getElementById('peers-container');
+    function renderClients() {
+      const container = document.getElementById('wg-clients-container');
+      if (!container) return;
       container.innerHTML = '';
-      if (peers.length === 0) {
+      if (wgClients.length === 0) {
         container.innerHTML = `
-          <div class="text-center py-6 text-slate-500 text-xs border border-dashed border-slate-800 rounded-lg">
-            Нет добавленных пиров. Нажмите "+ Добавить пир" для настройки филиала или мобильного клиента.
+          <div class="text-center py-5 text-slate-500 text-xs border border-dashed border-slate-800 rounded-lg">
+            Нет добавленных клиентов. Нажмите "+ Добавить клиента" для настройки смартфона, ПК или клиентского MikroTik.
           </div>
         `;
         return;
       }
 
-      peers.forEach(p => {
+      wgClients.forEach(c => {
+        const isMikrotik = c.clientType === 'mikrotik';
         const div = document.createElement('div');
         div.className = 'border border-slate-800 bg-slate-900/70 rounded-xl p-4 space-y-3';
         div.innerHTML = `
-          <div class="flex items-center justify-between pb-2 border-b border-slate-800/80">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-2 border-b border-slate-800/80 gap-2">
             <div class="flex items-center gap-2">
-              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-              <input type="text" value="${p.name}" class="bg-transparent font-semibold text-xs text-white border-b border-transparent hover:border-slate-700 focus:border-cyan-400 focus:outline-none px-1" oninput="p.name=this.value; updateScript();">
+              <span class="w-2 h-2 rounded-full ${isMikrotik ? 'bg-cyan-400' : 'bg-emerald-400'}"></span>
+              <input type="text" value="${c.name}" class="bg-transparent font-semibold text-xs text-white border-b border-transparent hover:border-slate-700 focus:border-cyan-400 focus:outline-none px-1" oninput="c.name=this.value; updateScript();">
+              <span class="text-[10px] px-2 py-0.5 rounded ${isMikrotik ? 'bg-cyan-950 text-cyan-400 border border-cyan-800' : 'bg-emerald-950 text-emerald-400 border border-emerald-800'}">
+                ${isMikrotik ? '🌐 MikroTik Router' : '📱 ПК / Смартфон'}
+              </span>
             </div>
-            <div class="flex items-center gap-2">
-              <button onclick="downloadPeerConf(${p.id})" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-cyan-300 px-2.5 py-1 rounded transition flex items-center gap-1">
-                📥 Скачать .conf для клиента
-              </button>
-              <button onclick="regenPeerKeys(${p.id})" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded transition">
+            <div class="flex items-center gap-1.5 flex-wrap">
+              ${isMikrotik ? `
+                <button onclick="showMikrotikClientScript(${c.id})" class="text-[11px] bg-cyan-900/60 hover:bg-cyan-800 text-cyan-200 px-2.5 py-1 rounded border border-cyan-700/80 transition flex items-center gap-1">
+                  📋 Скрипт .rsc для MikroTik
+                </button>
+              ` : `
+                <button onclick="downloadClientConf(${c.id})" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-cyan-300 px-2.5 py-1 rounded transition flex items-center gap-1">
+                  📥 .conf файл
+                </button>
+                <button onclick="showClientConf(${c.id})" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded transition">
+                  👁️ Конфиг
+                </button>
+              `}
+              <button onclick="regenClientKeys(${c.id})" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded transition">
                 🎲 Ключи
               </button>
-              <button onclick="removePeer(${p.id})" class="text-rose-400 hover:text-rose-300 text-xs px-2 py-1">✕</button>
+              <button onclick="removeClient(${c.id})" class="text-rose-400 hover:text-rose-300 text-xs px-2 py-1">✕</button>
             </div>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
             <div>
-              <label class="block text-[11px] text-slate-400 mb-1">Туннельный IP пира</label>
-              <input type="text" value="${p.tunIp}" class="form-input text-xs font-mono" oninput="p.tunIp=this.value; updateScript();">
+              <label class="block text-[11px] text-slate-400 mb-1">Тип клиента</label>
+              <select class="form-input text-xs" onchange="c.clientType=this.value; renderClients(); updateScript();">
+                <option value="generic" ${!isMikrotik ? 'selected' : ''}>📱 ПК / Смартфон (Generic WireGuard)</option>
+                <option value="mikrotik" ${isMikrotik ? 'selected' : ''}>🌐 Клиентский MikroTik (RouterOS v7)</option>
+              </select>
             </div>
             <div>
-              <label class="block text-[11px] text-slate-400 mb-1">Локальная подсеть пира (LAN)</label>
-              <input type="text" value="${p.remoteLan}" placeholder="192.168.2.0/24 (если есть)" class="form-input text-xs font-mono" oninput="p.remoteLan=this.value; updateScript();">
+              <label class="block text-[11px] text-slate-400 mb-1">Туннельный IP клиента</label>
+              <input type="text" value="${c.tunIp}" class="form-input text-xs font-mono" oninput="c.tunIp=this.value; updateScript();">
             </div>
             <div>
-              <label class="block text-[11px] text-slate-400 mb-1">Keepalive</label>
-              <input type="text" value="${p.keepalive}" class="form-input text-xs font-mono" oninput="p.keepalive=this.value; updateScript();">
+              <label class="block text-[11px] text-slate-400 mb-1">Маршрутизация трафика</label>
+              <select class="form-input text-xs" onchange="c.routeMode=this.value; updateScript();">
+                <option value="all" ${c.routeMode === 'all' ? 'selected' : ''}>Весь интернет через VPN (0.0.0.0/0)</option>
+                <option value="split" ${c.routeMode === 'split' ? 'selected' : ''}>Только сеть сервера (Split-Tunnel)</option>
+              </select>
             </div>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
             <div>
-              <label class="block text-[11px] text-slate-400 mb-1">Public Key пира (для MikroTik)</label>
-              <input type="text" value="${p.pubKey}" class="form-input text-xs font-mono text-emerald-400" oninput="p.pubKey=this.value; updateScript();">
+              <label class="block text-[11px] text-slate-400 mb-1">Public Key клиента (для MikroTik сервера)</label>
+              <input type="text" value="${c.pubKey}" class="form-input text-xs font-mono text-emerald-400" oninput="c.pubKey=this.value; updateScript();">
             </div>
             <div>
-              <label class="block text-[11px] text-slate-400 mb-1">Private Key пира (для .conf клиента)</label>
-              <input type="text" value="${p.privKey}" class="form-input text-xs font-mono text-cyan-300" oninput="p.privKey=this.value; updateScript();">
+              <label class="block text-[11px] text-slate-400 mb-1">Private Key клиента (секретный ключ устройства)</label>
+              <input type="text" value="${c.privKey}" class="form-input text-xs font-mono text-cyan-300" oninput="c.privKey=this.value; updateScript();">
             </div>
           </div>
         `;
@@ -1055,45 +1141,279 @@
       });
     }
 
-    // Role Change
-    function onWgRoleChange() {
-      const role = document.getElementById('wg_role').value;
-      const endpointCont = document.getElementById('wg_endpoint_container');
-      if (role === 'spoke' || role === 'pbr') {
-        endpointCont.style.display = 'block';
-      } else {
-        endpointCont.style.display = 'none';
-      }
+    // ============================================================
+    // 2. WireGuard Site-to-Site Branches Management
+    // ============================================================
+    let siteCounter = 0;
+    const wgSites = [];
+
+    function addSite(initData = null) {
+      const id = ++siteCounter;
+      const kp = generateWgKeyPair();
+      const site = {
+        id: id,
+        name: initData?.name || `Branch-Site-${id}`,
+        tunIp: initData?.tunIp || `10.255.255.${id * 10}`,
+        remoteLan: initData?.remoteLan || `192.168.${id + 1}.0/24`,
+        endpoint: initData?.endpoint || '',
+        privKey: initData?.privKey || kp.privateKey,
+        pubKey: initData?.pubKey || kp.publicKey,
+        keepalive: initData?.keepalive || '25s'
+      };
+      wgSites.push(site);
+      renderSites();
       updateScript();
     }
 
-    // Download Peer .conf for WireGuard Official App
-    function downloadPeerConf(peerId) {
-      const p = peers.find(x => x.id === peerId);
-      if (!p) return;
+    function removeSite(id) {
+      const idx = wgSites.findIndex(s => s.id === id);
+      if (idx !== -1) {
+        wgSites.splice(idx, 1);
+        renderSites();
+        updateScript();
+      }
+    }
 
-      const routerPubKey = document.getElementById('wg_public_key').value || '<ROUTER_PUBLIC_KEY>';
-      const endpoint = document.getElementById('wg_hub_endpoint').value || 'YOUR_ROUTER_PUBLIC_IP';
+    function regenSiteKeys(id) {
+      const s = wgSites.find(x => x.id === id);
+      if (s) {
+        const kp = generateWgKeyPair();
+        s.privKey = kp.privateKey;
+        s.pubKey = kp.publicKey;
+        renderSites();
+        updateScript();
+      }
+    }
+
+    function renderSites() {
+      const container = document.getElementById('wg-sites-container');
+      if (!container) return;
+      container.innerHTML = '';
+      if (wgSites.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-5 text-slate-500 text-xs border border-dashed border-slate-800 rounded-lg">
+            Нет добавленных филиалов. Нажмите "+ Добавить филиал" для настройки межофисного туннеля (Site-to-Site).
+          </div>
+        `;
+        return;
+      }
+
+      wgSites.forEach(s => {
+        const div = document.createElement('div');
+        div.className = 'border border-slate-800 bg-slate-900/70 rounded-xl p-4 space-y-3';
+        div.innerHTML = `
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-2 border-b border-slate-800/80 gap-2">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-blue-400"></span>
+              <input type="text" value="${s.name}" class="bg-transparent font-semibold text-xs text-white border-b border-transparent hover:border-slate-700 focus:border-cyan-400 focus:outline-none px-1" oninput="s.name=this.value; updateScript();">
+              <span class="text-[10px] px-2 py-0.5 rounded bg-blue-950 text-blue-400 border border-blue-800">
+                🏢 Site-to-Site Филиал
+              </span>
+            </div>
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <button onclick="showSiteBranchScript(${s.id})" class="text-[11px] bg-blue-900/60 hover:bg-blue-800 text-cyan-200 px-2.5 py-1 rounded border border-blue-700/80 transition flex items-center gap-1">
+                📋 Скрипт .rsc для роутера филиала
+              </button>
+              <button onclick="regenSiteKeys(${s.id})" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded transition">
+                🎲 Ключи
+              </button>
+              <button onclick="removeSite(${s.id})" class="text-rose-400 hover:text-rose-300 text-xs px-2 py-1">✕</button>
+            </div>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Туннельный IP филиала</label>
+              <input type="text" value="${s.tunIp}" class="form-input text-xs font-mono" oninput="s.tunIp=this.value; updateScript();">
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Локальная подсеть филиала (LAN)</label>
+              <input type="text" value="${s.remoteLan}" placeholder="192.168.2.0/24" class="form-input text-xs font-mono" oninput="s.remoteLan=this.value; updateScript();">
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Внешний IP / Endpoint филиала (опционально)</label>
+              <input type="text" value="${s.endpoint}" placeholder="Пусто, если филиал за NAT" class="form-input text-xs font-mono" oninput="s.endpoint=this.value; updateScript();">
+            </div>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Public Key филиала (для сервера)</label>
+              <input type="text" value="${s.pubKey}" class="form-input text-xs font-mono text-emerald-400" oninput="s.pubKey=this.value; updateScript();">
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Private Key филиала (секретный ключ филиала)</label>
+              <input type="text" value="${s.privKey}" class="form-input text-xs font-mono text-cyan-300" oninput="s.privKey=this.value; updateScript();">
+            </div>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    // ============================================================
+    // Helpers to generate client and site configs
+    // ============================================================
+    function getClientConfText(c) {
+      const routerPubKey = document.getElementById('wg_public_key').value || '<SERVER_PUBLIC_KEY>';
+      const endpoint = document.getElementById('wg_hub_endpoint')?.value || 'YOUR_ROUTER_PUBLIC_IP';
       const port = document.getElementById('wg_port').value || '51820';
       const mtu = document.getElementById('wg_mtu').value || '1420';
+      const serverTunIp = (document.getElementById('wg_tunnel_ip').value || '10.255.255.1/24').split('/')[0];
+      const serverLocalLan = document.getElementById('wg_local_lan')?.value || '192.168.1.0/24';
+
+      let allowedIps = c.routeMode === 'all' ? '0.0.0.0/0, ::/0' : `${serverTunIp}/32, ${serverLocalLan}`;
 
       let conf = [];
       conf.push(`[Interface]`);
-      conf.push(`PrivateKey = ${p.privKey}`);
-      conf.push(`Address = ${p.tunIp}/24`);
+      conf.push(`PrivateKey = ${c.privKey}`);
+      conf.push(`Address = ${c.tunIp}/24`);
       conf.push(`DNS = 1.1.1.1, 8.8.8.8`);
       conf.push(`MTU = ${mtu}\n`);
       conf.push(`[Peer]`);
       conf.push(`PublicKey = ${routerPubKey}`);
       conf.push(`Endpoint = ${endpoint}:${port}`);
-      conf.push(`AllowedIPs = 0.0.0.0/0, ::/0`);
+      conf.push(`AllowedIPs = ${allowedIps}`);
       conf.push(`PersistentKeepalive = 25`);
+      return conf.join('\n');
+    }
 
-      const blob = new Blob([conf.join('\n')], { type: 'text/plain;charset=utf-8' });
+    function getMikrotikClientScript(c) {
+      const serverPubKey = document.getElementById('wg_public_key').value || '<SERVER_PUBLIC_KEY>';
+      const serverEndpoint = document.getElementById('wg_hub_endpoint')?.value || 'YOUR_ROUTER_PUBLIC_IP';
+      const serverPort = document.getElementById('wg_port').value || '51820';
+      const wgMtu = document.getElementById('wg_mtu').value || '1420';
+      const serverTunIp = (document.getElementById('wg_tunnel_ip').value || '10.255.255.1/24').split('/')[0];
+      const serverLocalLan = document.getElementById('wg_local_lan')?.value || '192.168.1.0/24';
+      const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+
+      let allowedIps = c.routeMode === 'all' ? '0.0.0.0/0' : `${serverTunIp}/32,${serverLocalLan}`;
+
+      let lines = [];
+      lines.push(`# =====================================================================`);
+      lines.push(`# MikroTik RouterOS v7 - WireGuard Client Configuration`);
+      lines.push(`# Target: Client MikroTik Router (${c.name})`);
+      lines.push(`# Server Endpoint: ${serverEndpoint}:${serverPort}`);
+      lines.push(`# Route Mode: ${c.routeMode === 'all' ? 'Full Tunnel (0.0.0.0/0)' : 'Split Tunnel (Office LAN only)'}`);
+      lines.push(`# Generated: ${now} UTC`);
+      lines.push(`# =====================================================================\n`);
+
+      lines.push(`/interface wireguard`);
+      lines.push(`add name="wg-client" listen-port=51820 mtu=${wgMtu} private-key="${c.privKey}" comment="Client connection to Head Office"\n`);
+
+      lines.push(`/ip address`);
+      lines.push(`add address=${c.tunIp}/24 interface="wg-client" comment="WireGuard Client Tunnel IP"\n`);
+
+      lines.push(`/interface wireguard peers`);
+      lines.push(`add interface="wg-client" public-key="${serverPubKey}" endpoint-address="${serverEndpoint}" endpoint-port=${serverPort} allowed-address=${allowedIps} persistent-keepalive=25s comment="Head Office WireGuard Server"\n`);
+
+      lines.push(`/ip route`);
+      if (c.routeMode === 'all') {
+        lines.push(`add dst-address=0.0.0.0/0 gateway="wg-client" distance=2 comment="Default route via WireGuard VPN"`);
+      } else {
+        lines.push(`add dst-address=${serverLocalLan} gateway="wg-client" comment="Route to Head Office Network"`);
+      }
+      lines.push(``);
+
+      lines.push(`# MSS Clamping (PMTU Fix)`);
+      lines.push(`/ip firewall mangle`);
+      lines.push(`add chain=forward protocol=tcp tcp-flags=syn tcp-mss=1381-65535 action=change-mss new-mss=1380 passthrough=yes comment="WireGuard Client MSS Clamping"\n`);
+
+      lines.push(`# Optional: If devices on client router LAN need to access Head Office`);
+      lines.push(`/ip firewall nat`);
+      lines.push(`add chain=srcnat out-interface="wg-client" action=masquerade comment="Masquerade to WireGuard Tunnel"`);
+
+      return lines.join('\n');
+    }
+
+    function getSiteBranchScript(s) {
+      const serverPubKey = document.getElementById('wg_public_key').value || '<SERVER_PUBLIC_KEY>';
+      const serverEndpoint = document.getElementById('wg_hub_endpoint')?.value || 'YOUR_ROUTER_PUBLIC_IP';
+      const serverPort = document.getElementById('wg_port').value || '51820';
+      const wgMtu = document.getElementById('wg_mtu').value || '1420';
+      const serverTunIp = (document.getElementById('wg_tunnel_ip').value || '10.255.255.1/24').split('/')[0];
+      const serverLocalLan = document.getElementById('wg_local_lan')?.value || '192.168.1.0/24';
+      const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+
+      let lines = [];
+      lines.push(`# =====================================================================`);
+      lines.push(`# MikroTik RouterOS v7 - WireGuard Site-to-Site Branch Configuration`);
+      lines.push(`# Branch Router: ${s.name}`);
+      lines.push(`# Interconnect: Branch LAN (${s.remoteLan}) <---> Head Office LAN (${serverLocalLan})`);
+      lines.push(`# Server Endpoint: ${serverEndpoint}:${serverPort}`);
+      lines.push(`# Generated: ${now} UTC`);
+      lines.push(`# =====================================================================\n`);
+
+      lines.push(`/interface wireguard`);
+      lines.push(`add name="wg-site" listen-port=51820 mtu=${wgMtu} private-key="${s.privKey}" comment="Site-to-Site Tunnel to Head Office"\n`);
+
+      lines.push(`/ip address`);
+      lines.push(`add address=${s.tunIp}/24 interface="wg-site" comment="WireGuard Tunnel IP"\n`);
+
+      lines.push(`/interface wireguard peers`);
+      lines.push(`add interface="wg-site" public-key="${serverPubKey}" endpoint-address="${serverEndpoint}" endpoint-port=${serverPort} allowed-address=${serverTunIp}/32,${serverLocalLan} persistent-keepalive=25s comment="Head Office Peer"\n`);
+
+      lines.push(`/ip route`);
+      lines.push(`add dst-address=${serverLocalLan} gateway="wg-site" comment="Route to Head Office LAN"\n`);
+
+      lines.push(`# MSS Clamping (PMTU Fix)`);
+      lines.push(`/ip firewall mangle`);
+      lines.push(`add chain=forward protocol=tcp tcp-flags=syn tcp-mss=1381-65535 action=change-mss new-mss=1380 passthrough=yes comment="Site-to-Site MSS Clamping"\n`);
+
+      lines.push(`# Firewall Filter: Allow Site-to-Site Traffic`);
+      lines.push(`/ip firewall filter`);
+      lines.push(`add chain=forward in-interface="wg-site" action=accept comment="Accept traffic from Head Office via WireGuard"`);
+      lines.push(`add chain=forward out-interface="wg-site" action=accept comment="Accept traffic to Head Office via WireGuard"`);
+
+      return lines.join('\n');
+    }
+
+    function downloadClientConf(clientId) {
+      const c = wgClients.find(x => x.id === clientId);
+      if (!c) return;
+      const conf = getClientConfText(c);
+      const blob = new Blob([conf], { type: 'text/plain;charset=utf-8' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = `${p.name.replace(/\s+/g, '_')}.conf`;
+      a.download = `${c.name.replace(/\s+/g, '_')}.conf`;
       a.click();
+    }
+
+    function showClientConf(clientId) {
+      const c = wgClients.find(x => x.id === clientId);
+      if (!c) return;
+      openWgModal({
+        icon: '📱',
+        title: `WireGuard .conf для клиента: ${c.name}`,
+        desc: `Файл конфигурации для официального приложения WireGuard (iOS, Android, Windows, macOS, Linux)`,
+        code: getClientConfText(c),
+        fileName: `${c.name.replace(/\s+/g, '_')}.conf`,
+        status: `Клиент: ${c.tunIp} | Маршрут: ${c.routeMode === 'all' ? '0.0.0.0/0 (Full)' : 'Split-Tunnel'}`
+      });
+    }
+
+    function showMikrotikClientScript(clientId) {
+      const c = wgClients.find(x => x.id === clientId);
+      if (!c) return;
+      openWgModal({
+        icon: '🌐',
+        title: `RouterOS v7 Скрипт для клиентского MikroTik: ${c.name}`,
+        desc: `Готовые команды для импорта или вставки в терминал роутера MikroTik в роли клиента`,
+        code: getMikrotikClientScript(c),
+        fileName: `mikrotik_client_${c.name.replace(/\s+/g, '_')}.rsc`,
+        status: `Клиентский роутер: ${c.tunIp} -> ${document.getElementById('wg_hub_endpoint')?.value || 'Endpoint'}`
+      });
+    }
+
+    function showSiteBranchScript(siteId) {
+      const s = wgSites.find(x => x.id === siteId);
+      if (!s) return;
+      openWgModal({
+        icon: '🏢',
+        title: `RouterOS v7 Скрипт для роутера филиала: ${s.name}`,
+        desc: `Готовые команды для роутера удаленного офиса: интерфейс, туннель, маршруты LAN-to-LAN и фаервол`,
+        code: getSiteBranchScript(s),
+        fileName: `mikrotik_branch_${s.name.replace(/\s+/g, '_')}.rsc`,
+        status: `Филиал: ${s.remoteLan} <---> Офис: ${document.getElementById('wg_local_lan')?.value || '192.168.1.0/24'}`
+      });
     }
 
     // Tab switching
@@ -1238,16 +1558,17 @@
       });
 
       // 2. WireGuard params
-      const wgRole = document.getElementById('wg_role').value;
-      const wgIface = document.getElementById('wg_iface').value.trim() || 'wg0';
-      const wgPort = document.getElementById('wg_port').value.trim() || '51820';
-      const wgTunnelIp = document.getElementById('wg_tunnel_ip').value.trim() || '10.255.255.1/24';
-      const wgMtu = document.getElementById('wg_mtu').value;
-      const wgPrivKey = document.getElementById('wg_private_key').value.trim();
-      const wgPubKey = document.getElementById('wg_public_key').value.trim();
-      const wgHubEndpoint = document.getElementById('wg_hub_endpoint').value.trim();
-      const wgMssClamping = document.getElementById('wg_mss_clamping').checked;
-      const wgNatClients = document.getElementById('wg_nat_clients').checked;
+      const wgIface = document.getElementById('wg_iface')?.value.trim() || 'wg0';
+      const wgPort = document.getElementById('wg_port')?.value.trim() || '51820';
+      const wgTunnelIp = document.getElementById('wg_tunnel_ip')?.value.trim() || '10.255.255.1/24';
+      const wgServerLan = document.getElementById('wg_local_lan')?.value.trim() || '192.168.1.0/24';
+      const wgMtu = document.getElementById('wg_mtu')?.value || '1420';
+      const wgPrivKey = document.getElementById('wg_private_key')?.value.trim();
+      const wgPubKey = document.getElementById('wg_public_key')?.value.trim();
+      const wgHubEndpoint = document.getElementById('wg_hub_endpoint')?.value.trim() || '203.0.113.10';
+      const wgMssClamping = document.getElementById('wg_mss_clamping')?.checked;
+      const wgNatClients = document.getElementById('wg_nat_clients')?.checked;
+      const wgSubnet = wgTunnelIp.replace(/\.\d+\/\d+$/, '.0/24');
 
       let rsc = [];
       rsc.push(`# =====================================================================`);
@@ -1277,44 +1598,58 @@
       // -------------------------------------------------------------
       if (modWireguard) {
         rsc.push(`# =====================================================================`);
-        rsc.push(`# 1. MODULE: WIREGUARD (Role: ${wgRole.toUpperCase()})`);
+        rsc.push(`# 1. MODULE: WIREGUARD SERVER (Clients & Site-to-Site)`);
         rsc.push(`# =====================================================================`);
         rsc.push(`/interface wireguard`);
         let wgAddCmd = `add name="${wgIface}" listen-port=${wgPort} mtu=${wgMtu}`;
         if (wgPrivKey) {
           wgAddCmd += ` private-key="${wgPrivKey}"`;
         }
-        wgAddCmd += ` comment="WireGuard VPN Interface"`;
+        wgAddCmd += ` comment="WireGuard VPN Server"`;
         rsc.push(wgAddCmd);
 
         rsc.push(`/ip address`);
-        rsc.push(`add address=${wgTunnelIp} interface="${wgIface}" comment="WireGuard Tunnel IP"\n`);
+        rsc.push(`add address=${wgTunnelIp} interface="${wgIface}" comment="WireGuard Tunnel Server IP"\n`);
 
-        if (peers.length > 0) {
+        const totalPeers = wgClients.length + wgSites.length;
+        if (totalPeers > 0) {
           rsc.push(`/interface wireguard peers`);
-          peers.forEach(p => {
-            let allowedIps = [`${p.tunIp}/32`];
-            if (p.remoteLan) allowedIps.push(p.remoteLan);
-            let peerCmd = `add interface="${wgIface}" public-key="${p.pubKey}" allowed-address=${allowedIps.join(',')}`;
-            if (p.endpoint) {
-              peerCmd += ` endpoint-address="${p.endpoint}"`;
-            }
-            if (p.keepalive) {
-              peerCmd += ` persistent-keepalive=${p.keepalive}`;
-            }
-            peerCmd += ` comment="${translit(p.name)}"`;
-            rsc.push(peerCmd);
-          });
-          rsc.push(``);
 
-          // Auto-Routing to Spoke LANs
-          const peersWithLan = peers.filter(p => Boolean(p.remoteLan));
-          if (peersWithLan.length > 0) {
-            rsc.push(`/ip route`);
-            peersWithLan.forEach(p => {
-              rsc.push(`add dst-address=${p.remoteLan} gateway="${wgIface}" comment="Route to ${translit(p.name)} LAN"`);
+          // 1. RoadWarrior & MikroTik Clients
+          if (wgClients.length > 0) {
+            rsc.push(`# --- Client Peers (Mobile, PC & Client MikroTik) ---`);
+            wgClients.forEach(c => {
+              const tag = c.clientType === 'mikrotik' ? 'MikroTik Client' : 'Client';
+              rsc.push(`add interface="${wgIface}" public-key="${c.pubKey}" allowed-address=${c.tunIp}/32 persistent-keepalive=${c.keepalive || '25s'} comment="${translit(c.name)} [${tag}]"`);
             });
             rsc.push(``);
+          }
+
+          // 2. Site-to-Site Branches
+          if (wgSites.length > 0) {
+            rsc.push(`# --- Site-to-Site Branch Peers (LAN-to-LAN) ---`);
+            wgSites.forEach(s => {
+              let allowed = [`${s.tunIp}/32`];
+              if (s.remoteLan) allowed.push(s.remoteLan);
+              let cmd = `add interface="${wgIface}" public-key="${s.pubKey}" allowed-address=${allowed.join(',')}`;
+              if (s.endpoint) {
+                cmd += ` endpoint-address="${s.endpoint}"`;
+              }
+              cmd += ` persistent-keepalive=${s.keepalive || '25s'} comment="${translit(s.name)} [Site-to-Site]"`;
+              rsc.push(cmd);
+            });
+            rsc.push(``);
+
+            // Auto-Routing to Branch LANs
+            const sitesWithLan = wgSites.filter(s => Boolean(s.remoteLan));
+            if (sitesWithLan.length > 0) {
+              rsc.push(`# Routes to Branch LANs`);
+              rsc.push(`/ip route`);
+              sitesWithLan.forEach(s => {
+                rsc.push(`add dst-address=${s.remoteLan} gateway="${wgIface}" comment="Route to ${translit(s.name)} LAN"`);
+              });
+              rsc.push(``);
+            }
           }
         }
 
@@ -1327,7 +1662,7 @@
         if (!modFirewall && wgNatClients) {
           rsc.push(`# Standalone NAT Masquerade for WireGuard Subnet`);
           rsc.push(`/ip firewall nat`);
-          rsc.push(`add chain=srcnat src-address=10.255.255.0/24 action=masquerade comment="NAT for WireGuard Subnet"\n`);
+          rsc.push(`add chain=srcnat src-address=${wgSubnet} action=masquerade comment="NAT for WireGuard Subnet"\n`);
         }
       }
 
@@ -1466,7 +1801,7 @@
           rsc.push(`add chain=srcnat out-interface-list=ISP action=src-nat to-addresses=${srcNatIp} comment="Static Src-NAT"`);
         }
         if (wgNatClients) {
-          rsc.push(`add chain=srcnat src-address=10.255.255.0/24 out-interface-list=ISP action=masquerade comment="NAT for WireGuard Subnet"`);
+          rsc.push(`add chain=srcnat src-address=${wgSubnet} out-interface-list=ISP action=masquerade comment="NAT for WireGuard Subnet"`);
         }
         rsc.push(``);
       }
@@ -1768,13 +2103,52 @@
       a.click();
     }
 
+    // Modal keyboard shortcut
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeWgModal();
+    });
+
     // Init
     window.addEventListener('DOMContentLoaded', () => {
       regenRouterKeys();
-      addPeerRow({ name: 'Branch Office (Site B)', tunIp: '10.255.255.2', remoteLan: '192.168.2.0/24', keepalive: '25s' });
-      addPeerRow({ name: 'Mobile Admin (iPhone)', tunIp: '10.255.255.3', remoteLan: '', keepalive: '25s' });
+      addClient({ name: 'Mobile Admin (iPhone)', clientType: 'generic', tunIp: '10.255.255.2', routeMode: 'all' });
+      addClient({ name: 'Home MikroTik (Admin)', clientType: 'mikrotik', tunIp: '10.255.255.3', routeMode: 'split' });
+      addSite({ name: 'Branch Office (Site B)', tunIp: '10.255.255.10', remoteLan: '192.168.2.0/24', keepalive: '25s' });
       updateScript();
     });
   </script>
+
+  <!-- WireGuard Config / RSC Modal -->
+  <div id="wg-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm hidden" onclick="if(event.target===this) closeWgModal();">
+    <div class="bg-[#131c2e] border border-slate-700 rounded-xl w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+      <div class="px-5 py-4 border-b border-slate-800 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <span id="wg-modal-icon" class="text-xl">📋</span>
+          <div>
+            <h3 id="wg-modal-title" class="text-sm font-bold text-white">Конфигурация WireGuard</h3>
+            <p id="wg-modal-desc" class="text-[11px] text-slate-400">Параметры подключения и команды RouterOS v7</p>
+          </div>
+        </div>
+        <button onclick="closeWgModal()" class="text-slate-400 hover:text-white text-lg p-1">✕</button>
+      </div>
+      <div class="p-4 flex-1 overflow-auto bg-slate-950/70">
+        <pre id="wg-modal-code" class="text-xs font-mono text-cyan-300 whitespace-pre leading-relaxed select-all"></pre>
+      </div>
+      <div class="px-5 py-3 border-t border-slate-800 bg-[#0f172a] flex items-center justify-between">
+        <span id="wg-modal-status" class="text-xs text-slate-400"></span>
+        <div class="flex items-center gap-2">
+          <button onclick="copyWgModalCode()" class="text-xs bg-cyan-600 hover:bg-cyan-500 text-white font-medium px-3.5 py-1.5 rounded-lg transition flex items-center gap-1.5">
+            📋 Скопировать
+          </button>
+          <button id="wg-modal-download-btn" onclick="downloadWgModalCode()" class="text-xs bg-blue-600 hover:bg-blue-500 text-white font-medium px-3.5 py-1.5 rounded-lg transition flex items-center gap-1.5">
+            📥 Скачать файл
+          </button>
+          <button onclick="closeWgModal()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium px-3 py-1.5 rounded-lg transition">
+            Закрыть
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
