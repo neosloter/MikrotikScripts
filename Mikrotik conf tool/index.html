@@ -1835,58 +1835,64 @@
           // TgSend System Script
           rsc.push(`/system script`);
           rsc.push(`:if ([:len [find name="TgSend"]] > 0) do={ remove [find name="TgSend"] }`);
-
-          const tgScriptLines = [
-            `:global tgMsg;`,
-            `:global tgChat;`,
-            `:local botToken "${tgToken}";`,
-            `:local defaultChat "${tgChat}";`,
-            `:local routerName "${tgRouterName}";`,
-            `:local msg $tgMsg;`,
-            `:set tgMsg "";`,
-            `:if ([:len $msg] = 0) do={ :set msg "Test notification from MikroTik"; };`,
-            `:local targetChat $tgChat;`,
-            `:set tgChat "";`,
-            `:if ([:len $targetChat] = 0) do={ :set targetChat $defaultChat; };`,
-            `:do {`,
-            `    /tool fetch url=("https://api.telegram.org/bot" . $botToken . "/sendMessage") http-method=post http-data=("chat_id=" . $targetChat . "&text=[" . $routerName . "] " . $msg) keep-result=no check-certificate=no;`,
-            `} on-error={`,
-            `    :log warning "TgSend: Failed to send Telegram alert";`,
-            `};`
-          ];
-
-          // Escape quotes (") as (\") and dollar signs ($) as (\$) for RouterOS source="..."
-          const escapedTgSource = tgScriptLines
-            .map(l => l.replace(/"/g, '\\"').replace(/\$/g, '\\$'))
-            .join('\\r\\n');
-
-          rsc.push(`add dont-require-permissions=yes name="TgSend" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive source="${escapedTgSource}" comment="Central Telegram Alert Function"\n`);
+          rsc.push(`add dont-require-permissions=yes name="TgSend" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive source={
+    :global tgMsg
+    :local botToken "${tgToken}"
+    :local chatId "${tgChat}"
+    :local routerName "${tgRouterName}"
+    :local msg $tgMsg
+    :set tgMsg ""
+    :if ([:len $msg] = 0) do={ :set msg "Test notification from MikroTik" }
+    :do {
+        /tool fetch url=("https://api.telegram.org/bot" . $botToken . "/sendMessage") http-method=post http-data=("chat_id=" . $chatId . "&text=[" . $routerName . "] " . $msg) keep-result=no check-certificate=no
+    } on-error={
+        :log warning "TgSend: Failed to send Telegram alert"
+    }
+} comment="Central Telegram Alert Function"\n`);
 
           // Startup Trigger
           if (tgEvtStartup) {
             rsc.push(`/system scheduler`);
             rsc.push(`:if ([:len [find name="TgStartupAlert"]] > 0) do={ remove [find name="TgStartupAlert"] }`);
-            rsc.push(`add name="TgStartupAlert" start-time=startup interval=0s on-event=":delay 15s; :local sysUptime [/system resource get uptime]; :local sysVer [/system resource get version]; :local sysModel [/system resource get board-name]; :global tgMsg (\\"Router Started/Rebooted! Model: \\" . \\$sysModel . \\", Version: \\" . \\$sysVer . \\", Uptime: \\" . \\$sysUptime); /system script run TgSend;" comment="Notify on reboot"\n`);
+            rsc.push(`add name="TgStartupAlert" start-time=startup interval=0s on-event={
+    :delay 15s
+    :local sysUptime [/system resource get uptime]
+    :local sysVer [/system resource get version]
+    :local sysModel [/system resource get board-name]
+    :global tgMsg ("Router Started/Rebooted! Model: " . $sysModel . ", Version: " . $sysVer . ", Uptime: " . $sysUptime)
+    /system script run TgSend
+} comment="Notify on reboot"\n`);
           }
 
           // Netwatch Failover Trigger
           if (tgEvtNetwatch) {
             rsc.push(`/tool netwatch`);
             rsc.push(`:if ([:len [find host="${tgNetwatchHost}"]] > 0) do={ remove [find host="${tgNetwatchHost}"] }`);
-            rsc.push(`add host="${tgNetwatchHost}" interval=${tgNetwatchInterval} up-script=":global tgMsg \\"Internet Uplink UP (${tgNetwatchHost})\\"; /system script run TgSend;" down-script=":global tgMsg \\"CRITICAL: Internet Uplink DOWN (${tgNetwatchHost})\\"; /system script run TgSend;" comment="WAN Netwatch Alert"\n`);
+            rsc.push(`add host="${tgNetwatchHost}" interval=${tgNetwatchInterval} up-script={ :global tgMsg "Internet Uplink UP (${tgNetwatchHost})"; /system script run TgSend } down-script={ :global tgMsg "CRITICAL: Internet Uplink DOWN (${tgNetwatchHost})"; /system script run TgSend } comment="WAN Netwatch Alert"\n`);
           }
 
           // Security & Login Alert Trigger
           if (tgEvtLogin) {
             rsc.push(`/system scheduler`);
             rsc.push(`:if ([:len [find name="TgSecurityMonitor"]] > 0) do={ remove [find name="TgSecurityMonitor"] }`);
-            rsc.push(`add name="TgSecurityMonitor" interval=15s on-event=":global lastSecurityLogTime; :if ([:len \\$lastSecurityLogTime] = 0) do={ :set lastSecurityLogTime \\"00:00:00\\" }; :foreach i in=[/log find time>\\$lastSecurityLogTime] do={ :local logMsg [/log get \\$i message]; :set lastSecurityLogTime [/log get \\$i time]; :if (\\$logMsg ~ \\"logged in\\" or \\$logMsg ~ \\"login failure\\" or \\$logMsg ~ \\"\\[ATTACK-BAN\\]\\" or \\$logMsg ~ \\"\\[HONEYPOT-BAN\\]\\" or \\$logMsg ~ \\"\\[PSD-BAN\\]\\") do={ :global tgMsg (\\"Security Event: \\" . \\$logMsg); /system script run TgSend; }; };" comment="Monitor admin logins & attack bans"\n`);
+            rsc.push(`add name="TgSecurityMonitor" interval=15s on-event={
+    :global lastSecurityLogTime
+    :if ([:len $lastSecurityLogTime] = 0) do={ :set lastSecurityLogTime "00:00:00" }
+    :foreach i in=[/log find time>$lastSecurityLogTime] do={
+        :local logMsg [/log get $i message]
+        :set lastSecurityLogTime [/log get $i time]
+        :if ($logMsg ~ "logged in" or $logMsg ~ "login failure") do={
+            :global tgMsg ("Security Event: " . $logMsg)
+            /system script run TgSend
+        }
+    }
+} comment="Monitor admin logins & attack bans"\n`);
           }
 
           // DHCP Lease Trigger
           if (tgEvtDhcp) {
             rsc.push(`/ip dhcp-server`);
-            rsc.push(`:if ([:len [find]] > 0) do={ set [find] lease-script=":if (\\$leaseBound = 1) do={ :global tgMsg (\\"New DHCP Client IP: \\" . \\$leaseActIP . \\" MAC: \\" . \\$leaseActMAC . \\" Host: \\" . \\$\\"lease-hostname\\"); /system script run TgSend; };" }\n`);
+            rsc.push(`:if ([:len [find]] > 0) do={ set [find] lease-script={ :if ($leaseBound = 1) do={ :global tgMsg ("New DHCP Client IP: " . $leaseActIP . " MAC: " . $leaseActMAC . " Host: " . $"lease-hostname"); /system script run TgSend } } }\n`);
           }
         }
       }
