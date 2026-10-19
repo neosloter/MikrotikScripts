@@ -1815,7 +1815,10 @@
       if (modTelegram) {
         const tgEnabled = document.getElementById('tg_enabled').checked;
         if (tgEnabled) {
-          const tgToken = document.getElementById('tg_bot_token').value.trim();
+          let tgToken = document.getElementById('tg_bot_token').value.trim();
+          if (tgToken.startsWith('bot')) {
+            tgToken = tgToken.substring(3);
+          }
           const tgChat = document.getElementById('tg_chat_id').value.trim();
           const tgRouterName = translit(document.getElementById('tg_router_name').value.trim()) || 'MikroTik';
           const tgEvtStartup = document.getElementById('tg_evt_startup').checked;
@@ -1831,78 +1834,83 @@
           
           // TgSend System Script
           rsc.push(`/system script`);
-          rsc.push(`remove [find name="TgSend"]`);
+          rsc.push(`:if ([:len [find name="TgSend"]] > 0) do={ remove [find name="TgSend"] }`);
 
-          const tgScriptCode = [
+          const tgScriptLines = [
             `:global tgMsg;`,
             `:global tgChat;`,
             `:local botToken "${tgToken}";`,
             `:local defaultChat "${tgChat}";`,
             `:local routerPrefix "${tgRouterName}";`,
-            `:local text $msg;`,
-            `:if ([:len $text] = 0) do={ :set text $tgMsg; :set tgMsg ""; };`,
+            `:local text $tgMsg;`,
+            `:set tgMsg "";`,
             `:if ([:len $text] = 0) do={ :set text "Test notification from MikroTik"; };`,
-            `:local targetChat $chatId;`,
-            `:if ([:len $targetChat] = 0) do={ :set targetChat $tgChat; :set tgChat ""; };`,
+            `:local targetChat $tgChat;`,
+            `:set tgChat "";`,
             `:if ([:len $targetChat] = 0) do={ :set targetChat $defaultChat; };`,
             `:local fullText ("[" . $routerPrefix . "] " . $text);`,
-            `:local encodedMsg "";`,
-            `:if ([:len $fullText] > 0) do={`,
-            `    :for i from=0 to=([:len $fullText] - 1) do={`,
-            `        :local c [:pick $fullText $i ($i + 1)];`,
-            `        :local repl $c;`,
-            `        :if ($c = [:tochar 32]) do={ :set repl "%20"; };`,
-            `        :if ($c = [:tochar 10]) do={ :set repl "%0A"; };`,
-            `        :if ($c = [:tochar 13]) do={ :set repl ""; };`,
-            `        :if ($c = "#") do={ :set repl "%23"; };`,
-            `        :if ($c = "&") do={ :set repl "%26"; };`,
-            `        :if ($c = "?") do={ :set repl "%3F"; };`,
-            `        :if ($c = "+") do={ :set repl "%2B"; };`,
-            `        :if ($c = "%") do={ :set repl "%25"; };`,
-            `        :if ($c = "/") do={ :set repl "%2F"; };`,
-            `        :if ($c = [:tochar 92]) do={ :set repl "%5C"; };`,
-            `        :if ($c = [:tochar 34]) do={ :set repl "%22"; };`,
-            `        :set encodedMsg ($encodedMsg . $repl);`,
+            `:local q [:tochar 34];`,
+            `:local slash [:tochar 92];`,
+            `:local safeText "";`,
+            `:for i from=0 to=([:len $fullText] - 1) do={`,
+            `    :local c [:pick $fullText $i ($i + 1)];`,
+            `    :if ($c = $q) do={`,
+            `        :set safeText ($safeText . $slash . $q);`,
+            `    } else={`,
+            `        :if ($c = $slash) do={`,
+            `            :set safeText ($safeText . $slash . $slash);`,
+            `        } else={`,
+            `            :if ($c = [:tochar 10]) do={`,
+            `                :set safeText ($safeText . $slash . "n");`,
+            `            } else={`,
+            `                :if ($c = [:tochar 13]) do={`,
+            `                } else={`,
+            `                    :set safeText ($safeText . $c);`,
+            `                };`,
+            `            };`,
+            `        };`,
             `    };`,
             `};`,
+            `:local payload ("{" . $q . "chat_id" . $q . ":" . $q . $targetChat . $q . "," . $q . "text" . $q . ":" . $q . $safeText . $q . "}");`,
             `:do {`,
-            `    /tool fetch url=("https://api.telegram.org/bot" . $botToken . "/sendMessage?chat_id=" . $targetChat . "&text=" . $encodedMsg) keep-result=no check-certificate=no;`,
+            `    /tool fetch url=("https://api.telegram.org/bot" . $botToken . "/sendMessage") http-method=post http-header-field="Content-Type: application/json" http-data=$payload output=none check-certificate=no;`,
             `} on-error={`,
             `    :log warning ("TgSend: Failed to send Telegram alert to chat " . $targetChat);`,
             `};`
           ];
 
-          const escapedTgSource = tgScriptCode
-            .join('\\r\\n')
-            .replace(/"/g, '\\"');
+          // Escape quotes (") as (\") and dollar signs ($) as (\$) for RouterOS source="..."
+          const escapedTgSource = tgScriptLines
+            .map(l => l.replace(/"/g, '\\"').replace(/\$/g, '\\$'))
+            .join('\\r\\n');
 
           rsc.push(`add dont-require-permissions=yes name="TgSend" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive source="${escapedTgSource}" comment="Central Telegram Alert Function"\n`);
 
           // Startup Trigger
           if (tgEvtStartup) {
             rsc.push(`/system scheduler`);
-            rsc.push(`remove [find name="TgStartupAlert"]`);
+            rsc.push(`:if ([:len [find name="TgStartupAlert"]] > 0) do={ remove [find name="TgStartupAlert"] }`);
             rsc.push(`add name="TgStartupAlert" start-time=startup interval=0s on-event=":delay 15s;\\r\\n:local sysUptime [/system resource get uptime];\\r\\n:local sysVer [/system resource get version];\\r\\n:local sysModel [/system resource get board-name];\\r\\n:global tgMsg (\\"Router Started/Rebooted!\\\\nModel: \\" . \\$sysModel . \\"\\\\nVersion: \\" . \\$sysVer . \\"\\\\nUptime: \\" . \\$sysUptime);\\r\\n/system script run TgSend;" comment="Notify on reboot"\n`);
           }
 
           // Netwatch Failover Trigger
           if (tgEvtNetwatch) {
             rsc.push(`/tool netwatch`);
-            rsc.push(`remove [find host="${tgNetwatchHost}"]`);
+            rsc.push(`:if ([:len [find host="${tgNetwatchHost}"]] > 0) do={ remove [find host="${tgNetwatchHost}"] }`);
             rsc.push(`add host="${tgNetwatchHost}" interval=${tgNetwatchInterval} up-script=":global tgMsg \\"Internet Uplink UP (${tgNetwatchHost})\\"; /system script run TgSend;" down-script=":global tgMsg \\"CRITICAL: Internet Uplink DOWN (${tgNetwatchHost})\\"; /system script run TgSend;" comment="WAN Netwatch Alert"\n`);
           }
 
           // Security & Login Alert Trigger
           if (tgEvtLogin) {
             rsc.push(`/system scheduler`);
-            rsc.push(`remove [find name="TgSecurityMonitor"]`);
-            rsc.push(`add name="TgSecurityMonitor" interval=15s on-event=":global lastSecurityLogTime;\\r\\n:if ([:len \\$lastSecurityLogTime] = 0) do={ :set lastSecurityLogTime \\"00:00:00\\" };\\r\\n:foreach i in=[/log find time>\\$lastSecurityLogTime] do={\\r\\n    :local logMsg [/log get \\$i message];\\r\\n    :set lastSecurityLogTime [/log get \\$i time];\\r\\n    :if (\\$logMsg ~ \\"logged in\\" || \\$logMsg ~ \\"login failure\\" || \\$logMsg ~ \\"\\[ATTACK-BAN\\]\\" || \\$logMsg ~ \\"\\[HONEYPOT-BAN\\]\\" || \\$logMsg ~ \\"\\[PSD-BAN\\]\\") do={\\r\\n        :global tgMsg (\\"Security Event:\\\\n\\" . \\$logMsg);\\r\\n        /system script run TgSend;\\r\\n    };\\r\\n};" comment="Monitor admin logins & attack bans"\n`);
+            rsc.push(`:if ([:len [find name="TgSecurityMonitor"]] > 0) do={ remove [find name="TgSecurityMonitor"] }`);
+            rsc.push(`add name="TgSecurityMonitor" interval=15s on-event=":global lastSecurityLogTime;\\r\\n:if ([:len \\$lastSecurityLogTime] = 0) do={ :set lastSecurityLogTime \\"00:00:00\\" };\\r\\n:foreach i in=[/log find time>\\$lastSecurityLogTime] do={\\r\\n    :local logMsg [/log get \\$i message];\\r\\n    :set lastSecurityLogTime [/log get \\$i time];\\r\\n    :if (\\$logMsg ~ \\"logged in\\" or \\$logMsg ~ \\"login failure\\" or \\$logMsg ~ \\"\\[ATTACK-BAN\\]\\" or \\$logMsg ~ \\"\\[HONEYPOT-BAN\\]\\" or \\$logMsg ~ \\"\\[PSD-BAN\\]\\") do={\\r\\n        :global tgMsg (\\"Security Event:\\\\n\\" . \\$logMsg);\\r\\n        /system script run TgSend;\\r\\n    };\\r\\n};" comment="Monitor admin logins & attack bans"\n`);
           }
 
           // DHCP Lease Trigger
           if (tgEvtDhcp) {
             rsc.push(`/ip dhcp-server`);
-            rsc.push(`set [find] lease-script=":if (\\$leaseBound = 1) do={\\r\\n    :global tgMsg (\\"New DHCP Client IP: \\" . \\$leaseActIP . \\" MAC: \\" . \\$leaseActMAC . \\" Host: \\" . \\$\\"lease-hostname\\");\\r\\n    /system script run TgSend;\\r\\n};"\n`);
+            rsc.push(`:if ([:len [find]] > 0) do={ set [find] lease-script=":if (\\$leaseBound = 1) do={\\r\\n    :global tgMsg (\\"New DHCP Client IP: \\" . \\$leaseActIP . \\" MAC: \\" . \\$leaseActMAC . \\" Host: \\" . \\$\\"lease-hostname\\");\\r\\n    /system script run TgSend;\\r\\n};" }\n`);
           }
         }
       }
