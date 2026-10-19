@@ -1841,41 +1841,17 @@
             `:global tgChat;`,
             `:local botToken "${tgToken}";`,
             `:local defaultChat "${tgChat}";`,
-            `:local routerPrefix "${tgRouterName}";`,
-            `:local text $tgMsg;`,
+            `:local routerName "${tgRouterName}";`,
+            `:local msg $tgMsg;`,
             `:set tgMsg "";`,
-            `:if ([:len $text] = 0) do={ :set text "Test notification from MikroTik"; };`,
+            `:if ([:len $msg] = 0) do={ :set msg "Test notification from MikroTik"; };`,
             `:local targetChat $tgChat;`,
             `:set tgChat "";`,
             `:if ([:len $targetChat] = 0) do={ :set targetChat $defaultChat; };`,
-            `:local fullText ("[" . $routerPrefix . "] " . $text);`,
-            `:local q [:tochar 34];`,
-            `:local slash [:tochar 92];`,
-            `:local safeText "";`,
-            `:for i from=0 to=([:len $fullText] - 1) do={`,
-            `    :local c [:pick $fullText $i ($i + 1)];`,
-            `    :if ($c = $q) do={`,
-            `        :set safeText ($safeText . $slash . $q);`,
-            `    } else={`,
-            `        :if ($c = $slash) do={`,
-            `            :set safeText ($safeText . $slash . $slash);`,
-            `        } else={`,
-            `            :if ($c = [:tochar 10]) do={`,
-            `                :set safeText ($safeText . $slash . "n");`,
-            `            } else={`,
-            `                :if ($c = [:tochar 13]) do={`,
-            `                } else={`,
-            `                    :set safeText ($safeText . $c);`,
-            `                };`,
-            `            };`,
-            `        };`,
-            `    };`,
-            `};`,
-            `:local payload ("{" . $q . "chat_id" . $q . ":" . $q . $targetChat . $q . "," . $q . "text" . $q . ":" . $q . $safeText . $q . "}");`,
             `:do {`,
-            `    /tool fetch url=("https://api.telegram.org/bot" . $botToken . "/sendMessage") http-method=post http-header-field="Content-Type: application/json" http-data=$payload output=none check-certificate=no;`,
+            `    /tool fetch url=("https://api.telegram.org/bot" . $botToken . "/sendMessage") http-method=post http-data=("chat_id=" . $targetChat . "&text=[" . $routerName . "] " . $msg) keep-result=no check-certificate=no;`,
             `} on-error={`,
-            `    :log warning ("TgSend: Failed to send Telegram alert to chat " . $targetChat);`,
+            `    :log warning "TgSend: Failed to send Telegram alert";`,
             `};`
           ];
 
@@ -1890,7 +1866,7 @@
           if (tgEvtStartup) {
             rsc.push(`/system scheduler`);
             rsc.push(`:if ([:len [find name="TgStartupAlert"]] > 0) do={ remove [find name="TgStartupAlert"] }`);
-            rsc.push(`add name="TgStartupAlert" start-time=startup interval=0s on-event=":delay 15s;\\r\\n:local sysUptime [/system resource get uptime];\\r\\n:local sysVer [/system resource get version];\\r\\n:local sysModel [/system resource get board-name];\\r\\n:global tgMsg (\\"Router Started/Rebooted!\\\\nModel: \\" . \\$sysModel . \\"\\\\nVersion: \\" . \\$sysVer . \\"\\\\nUptime: \\" . \\$sysUptime);\\r\\n/system script run TgSend;" comment="Notify on reboot"\n`);
+            rsc.push(`add name="TgStartupAlert" start-time=startup interval=0s on-event=":delay 15s; :local sysUptime [/system resource get uptime]; :local sysVer [/system resource get version]; :local sysModel [/system resource get board-name]; :global tgMsg (\\"Router Started/Rebooted! Model: \\" . \\$sysModel . \\", Version: \\" . \\$sysVer . \\", Uptime: \\" . \\$sysUptime); /system script run TgSend;" comment="Notify on reboot"\n`);
           }
 
           // Netwatch Failover Trigger
@@ -1904,13 +1880,13 @@
           if (tgEvtLogin) {
             rsc.push(`/system scheduler`);
             rsc.push(`:if ([:len [find name="TgSecurityMonitor"]] > 0) do={ remove [find name="TgSecurityMonitor"] }`);
-            rsc.push(`add name="TgSecurityMonitor" interval=15s on-event=":global lastSecurityLogTime;\\r\\n:if ([:len \\$lastSecurityLogTime] = 0) do={ :set lastSecurityLogTime \\"00:00:00\\" };\\r\\n:foreach i in=[/log find time>\\$lastSecurityLogTime] do={\\r\\n    :local logMsg [/log get \\$i message];\\r\\n    :set lastSecurityLogTime [/log get \\$i time];\\r\\n    :if (\\$logMsg ~ \\"logged in\\" or \\$logMsg ~ \\"login failure\\" or \\$logMsg ~ \\"\\[ATTACK-BAN\\]\\" or \\$logMsg ~ \\"\\[HONEYPOT-BAN\\]\\" or \\$logMsg ~ \\"\\[PSD-BAN\\]\\") do={\\r\\n        :global tgMsg (\\"Security Event:\\\\n\\" . \\$logMsg);\\r\\n        /system script run TgSend;\\r\\n    };\\r\\n};" comment="Monitor admin logins & attack bans"\n`);
+            rsc.push(`add name="TgSecurityMonitor" interval=15s on-event=":global lastSecurityLogTime; :if ([:len \\$lastSecurityLogTime] = 0) do={ :set lastSecurityLogTime \\"00:00:00\\" }; :foreach i in=[/log find time>\\$lastSecurityLogTime] do={ :local logMsg [/log get \\$i message]; :set lastSecurityLogTime [/log get \\$i time]; :if (\\$logMsg ~ \\"logged in\\" or \\$logMsg ~ \\"login failure\\" or \\$logMsg ~ \\"\\[ATTACK-BAN\\]\\" or \\$logMsg ~ \\"\\[HONEYPOT-BAN\\]\\" or \\$logMsg ~ \\"\\[PSD-BAN\\]\\") do={ :global tgMsg (\\"Security Event: \\" . \\$logMsg); /system script run TgSend; }; };" comment="Monitor admin logins & attack bans"\n`);
           }
 
           // DHCP Lease Trigger
           if (tgEvtDhcp) {
             rsc.push(`/ip dhcp-server`);
-            rsc.push(`:if ([:len [find]] > 0) do={ set [find] lease-script=":if (\\$leaseBound = 1) do={\\r\\n    :global tgMsg (\\"New DHCP Client IP: \\" . \\$leaseActIP . \\" MAC: \\" . \\$leaseActMAC . \\" Host: \\" . \\$\\"lease-hostname\\");\\r\\n    /system script run TgSend;\\r\\n};" }\n`);
+            rsc.push(`:if ([:len [find]] > 0) do={ set [find] lease-script=":if (\\$leaseBound = 1) do={ :global tgMsg (\\"New DHCP Client IP: \\" . \\$leaseActIP . \\" MAC: \\" . \\$leaseActMAC . \\" Host: \\" . \\$\\"lease-hostname\\"); /system script run TgSend; };" }\n`);
           }
         }
       }
