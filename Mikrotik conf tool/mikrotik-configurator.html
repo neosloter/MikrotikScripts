@@ -300,13 +300,13 @@
 
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Драйвер / Пакет</label>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Драйвер / Поколение роутера</label>
                 <select id="init_wifi_package" class="form-input text-xs" onchange="updateScript()">
-                  <option value="auto" selected>Универсальный (WiFiWave2 & Classic)</option>
-                  <option value="qcom">WiFi / WiFiWave2 (ax / ac Wave2)</option>
-                  <option value="classic">Wireless Classic (legacy n / ac)</option>
+                  <option value="classic" selected>Wireless Classic (802.11n / ac) — hAP ac², ac³, lite, cAP ac, RB951</option>
+                  <option value="qcom">WiFi / WiFiWave2 (802.11ax / Wi-Fi 6) — hAP ax², ax³, cAP ax, L009</option>
+                  <option value="auto">Автоопределение (Безопасный :execute)</option>
                 </select>
-                <span class="text-[10px] text-slate-500">Подходит под любую модель роутера</span>
+                <span class="text-[10px] text-slate-500">Выберите стандарт для вашей модели роутера</span>
               </div>
               <div>
                 <label class="block text-xs font-medium text-slate-400 mb-1">Страна (Регуляторный домен)</label>
@@ -330,11 +330,18 @@
               </div>
             </div>
 
-            <div class="p-3 rounded-lg bg-slate-900/60 border border-slate-800/80">
-              <label class="flex items-start gap-2.5 cursor-pointer">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <label class="flex items-start gap-2.5 p-3 rounded-lg bg-slate-900/60 border border-slate-800/80 cursor-pointer hover:border-slate-700">
+                <input type="checkbox" id="init_wifi_split_bands" onchange="updateScript()" class="mt-0.5 rounded text-cyan-500 focus:ring-0">
+                <div>
+                  <span class="font-medium text-slate-200">Раздельные имена сетей (2.4G и 5G)</span>
+                  <p class="text-[11px] text-slate-400 mt-0.5">Создает <code class="text-cyan-300">SSID</code> для 2.4 GHz и <code class="text-cyan-300">SSID_5G</code> для 5 GHz (критично для умного дома IoT)</p>
+                </div>
+              </label>
+              <label class="flex items-start gap-2.5 p-3 rounded-lg bg-slate-900/60 border border-slate-800/80 cursor-pointer hover:border-slate-700">
                 <input type="checkbox" id="init_wifi_hide_ssid" onchange="updateScript()" class="mt-0.5 rounded text-cyan-500 focus:ring-0">
                 <div>
-                  <span class="text-xs font-medium text-slate-200">Скрыть SSID (Hide SSID broadcast)</span>
+                  <span class="font-medium text-slate-200">Скрыть SSID (Hide SSID broadcast)</span>
                   <p class="text-[11px] text-slate-400 mt-0.5">Сеть не будет видна в общем поиске доступных сетей</p>
                 </div>
               </label>
@@ -1974,9 +1981,10 @@
       const initWifiEnabled = document.getElementById('init_wifi_enabled')?.checked ?? true;
       const initWifiSsid = document.getElementById('init_wifi_ssid')?.value.trim() || 'MikroTik-Home';
       const initWifiPass = document.getElementById('init_wifi_pass')?.value.trim() || 'SuperSecurePass2026!';
-      const initWifiPackage = document.getElementById('init_wifi_package')?.value || 'auto';
+      const initWifiPackage = document.getElementById('init_wifi_package')?.value || 'classic';
       const initWifiCountry = document.getElementById('init_wifi_country')?.value || 'Latvia';
       const initWifiSecurity = document.getElementById('init_wifi_security')?.value || 'wpa2-wpa3';
+      const initWifiSplitBands = document.getElementById('init_wifi_split_bands')?.checked ?? false;
       const initWifiHideSsid = document.getElementById('init_wifi_hide_ssid')?.checked ?? false;
 
       const initWanIface = document.getElementById('init_wan_iface')?.value.trim() || 'ether1';
@@ -2127,49 +2135,86 @@
         // Wi-Fi
         if (initWifiEnabled) {
           const ssidClean = translit(initWifiSsid) || 'MikroTik-WiFi';
-          const countryParam = (initWifiCountry && initWifiCountry !== 'manual-txpower') ? ` country="${initWifiCountry}"` : '';
+          const ssid24 = initWifiSsid || 'MikroTik-Home';
+          const ssid5 = initWifiSplitBands ? `${ssid24}_5G` : ssid24;
           const hideSsidVal = initWifiHideSsid ? 'yes' : 'no';
 
-          rsc.push(`# --- Wireless / Wi-Fi Configuration ---`);
-          if (initWifiPackage === 'qcom') {
-            const wifiAuth = initWifiSecurity === 'wpa2-only' ? 'wpa2-psk' : (initWifiSecurity === 'wpa3-only' ? 'wpa3-sae' : 'wpa2-psk,wpa3-sae');
-            rsc.push(`/interface wifi security add name="sec-${ssidClean}" authentication-types=${wifiAuth} passphrase="${initWifiPass}"`);
-            rsc.push(`/interface wifi configuration add name="cfg-${ssidClean}" ssid="${initWifiSsid}" security="sec-${ssidClean}"${countryParam} hide-ssid=${hideSsidVal}`);
-            rsc.push(`/interface wifi set [find] configuration="cfg-${ssidClean}" disabled=no`);
-          } else if (initWifiPackage === 'classic') {
-            rsc.push(`/interface wireless security-profiles add name="sec-${ssidClean}" mode=dynamic-keys authentication-types=wpa2-psk wpa2-pre-shared-key="${initWifiPass}" supplicant-identity="MikroTik"`);
-            rsc.push(`/interface wireless set [find] mode=ap-bridge ssid="${initWifiSsid}" security-profile="sec-${ssidClean}"${countryParam} hide-ssid=${hideSsidVal} disabled=no`);
-          } else {
-            // Auto / Universal
-            const wifiAuth = initWifiSecurity === 'wpa2-only' ? 'wpa2-psk' : (initWifiSecurity === 'wpa3-only' ? 'wpa3-sae' : 'wpa2-psk,wpa3-sae');
-            rsc.push(`:if ([:len [/system package find name="wifi" or name="wifiwave2"]] > 0 or [:len [/interface wifi find]] > 0) do={`);
-            rsc.push(`  /interface wifi security add name="sec-${ssidClean}" authentication-types=${wifiAuth} passphrase="${initWifiPass}"`);
-            rsc.push(`  /interface wifi configuration add name="cfg-${ssidClean}" ssid="${initWifiSsid}" security="sec-${ssidClean}"${countryParam} hide-ssid=${hideSsidVal}`);
-            rsc.push(`  /interface wifi set [find] configuration="cfg-${ssidClean}" disabled=no`);
-            rsc.push(`} else={`);
-            rsc.push(`  /interface wireless security-profiles add name="sec-${ssidClean}" mode=dynamic-keys authentication-types=wpa2-psk wpa2-pre-shared-key="${initWifiPass}" supplicant-identity="MikroTik"`);
-            rsc.push(`  /interface wireless set [find] mode=ap-bridge ssid="${initWifiSsid}" security-profile="sec-${ssidClean}"${countryParam} hide-ssid=${hideSsidVal} disabled=no`);
-            rsc.push(`}`);
-          }
+          // Classic country syntax: country=latvia, country=russia, etc.
+          let classicCountry = '';
+          if (initWifiCountry === 'Russia') classicCountry = ' country=russia';
+          else if (initWifiCountry === 'Latvia') classicCountry = ' country=latvia';
+          else if (initWifiCountry === 'Germany') classicCountry = ' country=germany';
+          else if (initWifiCountry === 'United States') classicCountry = ' country="united states"';
 
-          // Add Wi-Fi interfaces to LAN Bridge
-          rsc.push(`# Join Wi-Fi interfaces into LAN Bridge`);
-          rsc.push(`:if ([:len [/interface wifi find]] > 0) do={`);
-          rsc.push(`  :foreach w in=[/interface wifi find] do={`);
-          rsc.push(`    :local wName [/interface wifi get $w name];`);
-          rsc.push(`    :if ([:len [/interface bridge port find interface=$wName]] = 0) do={`);
-          rsc.push(`      /interface bridge port add bridge="${initBridgeName}" interface=$wName comment="Wi-Fi AP to LAN Bridge"`);
-          rsc.push(`    }`);
-          rsc.push(`  }`);
-          rsc.push(`}`);
-          rsc.push(`:if ([:len [/interface wireless find]] > 0) do={`);
-          rsc.push(`  :foreach w in=[/interface wireless find] do={`);
-          rsc.push(`    :local wName [/interface wireless get $w name];`);
-          rsc.push(`    :if ([:len [/interface bridge port find interface=$wName]] = 0) do={`);
-          rsc.push(`      /interface bridge port add bridge="${initBridgeName}" interface=$wName comment="Wireless AP to LAN Bridge"`);
-          rsc.push(`    }`);
-          rsc.push(`  }`);
-          rsc.push(`}\n`);
+          // WiFi / WiFiWave2 country syntax: country="Latvia"
+          const qcomCountry = (initWifiCountry && initWifiCountry !== 'manual-txpower') ? ` country="${initWifiCountry}"` : '';
+
+          // Auth mode
+          const wifiAuth = initWifiSecurity === 'wpa2-only' ? 'wpa2-psk' : (initWifiSecurity === 'wpa3-only' ? 'wpa3-sae' : 'wpa2-psk,wpa3-sae');
+
+          rsc.push(`# =====================================================================`);
+          if (initWifiPackage === 'classic') {
+            rsc.push(`# --- Wi-Fi: Classic Wireless (/interface wireless - n/ac) ---`);
+            rsc.push(`/interface wireless security-profiles`);
+            rsc.push(`:if ([:len [find name="sec-${ssidClean}"]] = 0) do={`);
+            rsc.push(`  add name="sec-${ssidClean}" mode=dynamic-keys authentication-types=wpa2-psk wpa2-pre-shared-key="${initWifiPass}" supplicant-identity="MikroTik"`);
+            rsc.push(`} else={`);
+            rsc.push(`  set [find name="sec-${ssidClean}"] mode=dynamic-keys authentication-types=wpa2-psk wpa2-pre-shared-key="${initWifiPass}"`);
+            rsc.push(`}\n`);
+
+            rsc.push(`/interface wireless`);
+            rsc.push(`:do { set [find default-name=wlan1] mode=ap-bridge ssid="${ssid24}" security-profile="sec-${ssidClean}"${classicCountry} frequency-mode=regulatory-domain installation=indoor hide-ssid=${hideSsidVal} disabled=no } on-error={}`);
+            rsc.push(`:do { set [find default-name=wlan2] mode=ap-bridge ssid="${ssid5}" security-profile="sec-${ssidClean}"${classicCountry} frequency-mode=regulatory-domain installation=indoor hide-ssid=${hideSsidVal} disabled=no } on-error={}`);
+            rsc.push(`:do { set [find] mode=ap-bridge ssid="${ssid24}" security-profile="sec-${ssidClean}"${classicCountry} frequency-mode=regulatory-domain installation=indoor hide-ssid=${hideSsidVal} disabled=no } on-error={}\n`);
+
+            rsc.push(`# Add Wireless interfaces into LAN Bridge`);
+            rsc.push(`/interface bridge port`);
+            rsc.push(`:foreach w in=[/interface wireless find] do={`);
+            rsc.push(`  :local wName [/interface wireless get $w name];`);
+            rsc.push(`  :if ([:len [/interface bridge port find interface=$wName]] = 0) do={`);
+            rsc.push(`    add bridge="${initBridgeName}" interface=$wName comment="Wireless AP to LAN Bridge"`);
+            rsc.push(`  }`);
+            rsc.push(`}\n`);
+          } else if (initWifiPackage === 'qcom') {
+            rsc.push(`# --- Wi-Fi: WiFi / WiFiWave2 (/interface wifi - Wi-Fi 6 / ax) ---`);
+            rsc.push(`/interface wifi security`);
+            rsc.push(`:if ([:len [find name="sec-${ssidClean}"]] = 0) do={`);
+            rsc.push(`  add name="sec-${ssidClean}" authentication-types=${wifiAuth} passphrase="${initWifiPass}"`);
+            rsc.push(`} else={`);
+            rsc.push(`  set [find name="sec-${ssidClean}"] authentication-types=${wifiAuth} passphrase="${initWifiPass}"`);
+            rsc.push(`}\n`);
+
+            rsc.push(`/interface wifi configuration`);
+            rsc.push(`:if ([:len [find name="cfg-${ssidClean}-2g"]] = 0) do={`);
+            rsc.push(`  add name="cfg-${ssidClean}-2g" ssid="${ssid24}" security="sec-${ssidClean}"${qcomCountry} hide-ssid=${hideSsidVal}`);
+            rsc.push(`} else={`);
+            rsc.push(`  set [find name="cfg-${ssidClean}-2g"] ssid="${ssid24}" security="sec-${ssidClean}"${qcomCountry} hide-ssid=${hideSsidVal}`);
+            rsc.push(`}`);
+            rsc.push(`:if ([:len [find name="cfg-${ssidClean}-5g"]] = 0) do={`);
+            rsc.push(`  add name="cfg-${ssidClean}-5g" ssid="${ssid5}" security="sec-${ssidClean}"${qcomCountry} hide-ssid=${hideSsidVal}`);
+            rsc.push(`} else={`);
+            rsc.push(`  set [find name="cfg-${ssidClean}-5g"] ssid="${ssid5}" security="sec-${ssidClean}"${qcomCountry} hide-ssid=${hideSsidVal}`);
+            rsc.push(`}\n`);
+
+            rsc.push(`/interface wifi`);
+            rsc.push(`:do { set [find default-name=wifi1] configuration="cfg-${ssidClean}-5g" disabled=no } on-error={}`);
+            rsc.push(`:do { set [find default-name=wifi2] configuration="cfg-${ssidClean}-2g" disabled=no } on-error={}`);
+            rsc.push(`:do { set [find] configuration="cfg-${ssidClean}-2g" disabled=no } on-error={}\n`);
+
+            rsc.push(`# Add Wi-Fi interfaces into LAN Bridge`);
+            rsc.push(`/interface bridge port`);
+            rsc.push(`:foreach w in=[/interface wifi find] do={`);
+            rsc.push(`  :local wName [/interface wifi get $w name];`);
+            rsc.push(`  :if ([:len [/interface bridge port find interface=$wName]] = 0) do={`);
+            rsc.push(`    add bridge="${initBridgeName}" interface=$wName comment="Wi-Fi AP to LAN Bridge"`);
+            rsc.push(`  }`);
+            rsc.push(`}\n`);
+          } else {
+            // Auto-safe via :execute strings (Never causes parse-time syntax error on either driver!)
+            rsc.push(`# --- Wi-Fi: Universal Auto-Detection (Safe background execution) ---`);
+            rsc.push(`:execute script="/interface wifi security add name=\\"sec-${ssidClean}\\" authentication-types=${wifiAuth} passphrase=\\"${initWifiPass}\\"; /interface wifi configuration add name=\\"cfg-${ssidClean}\\" ssid=\\"${ssid24}\\" security=\\"sec-${ssidClean}\\"${qcomCountry} hide-ssid=${hideSsidVal}; /interface wifi set [find] configuration=\\"cfg-${ssidClean}\\" disabled=no; :foreach w in=[/interface wifi find] do={ :local wn [/interface wifi get $w name]; :if ([:len [/interface bridge port find interface=\\$wn]] = 0) do={ /interface bridge port add bridge=\\"${initBridgeName}\\" interface=\\$wn comment=\\"Wi-Fi AP to LAN Bridge\\" } }"`);
+            rsc.push(`:execute script="/interface wireless security-profiles add name=\\"sec-${ssidClean}\\" mode=dynamic-keys authentication-types=wpa2-psk wpa2-pre-shared-key=\\"${initWifiPass}\\" supplicant-identity=\\"MikroTik\\"; /interface wireless set [find] mode=ap-bridge ssid=\\"${ssid24}\\" security-profile=\\"sec-${ssidClean}\\"${classicCountry} frequency-mode=regulatory-domain installation=indoor hide-ssid=${hideSsidVal} disabled=no; :foreach w in=[/interface wireless find] do={ :local wn [/interface wireless get $w name]; :if ([:len [/interface bridge port find interface=\\$wn]] = 0) do={ /interface bridge port add bridge=\\"${initBridgeName}\\" interface=\\$wn comment=\\"Wireless AP to LAN Bridge\\" } }"\n`);
+          }
         }
 
         // Vendor Hardening & Best Practices
