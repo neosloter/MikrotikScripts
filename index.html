@@ -97,20 +97,23 @@
     </div>
 
     <!-- Navigation Tabs -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex space-x-1 border-t border-slate-800/80 pt-1">
-      <button onclick="switchTab('firewall')" id="tab-firewall" class="tab-btn px-4 py-2.5 text-xs font-semibold rounded-t-lg border-b-2 flex items-center gap-2 tab-active">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex space-x-1 border-t border-slate-800/80 pt-1 overflow-x-auto">
+      <button onclick="switchTab('init')" id="tab-init" class="tab-btn px-4 py-2.5 text-xs font-semibold rounded-t-lg border-b-2 flex items-center gap-2 tab-active whitespace-nowrap">
+        <span class="text-base">🚀</span> Модуль 0: Первоначальная настройка
+      </button>
+      <button onclick="switchTab('firewall')" id="tab-firewall" class="tab-btn px-4 py-2.5 text-xs font-semibold rounded-t-lg border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 whitespace-nowrap">
         <span class="text-base">🛡️</span> Модуль 1: Firewall
       </button>
-      <button onclick="switchTab('wireguard')" id="tab-wireguard" class="tab-btn px-4 py-2.5 text-xs font-semibold rounded-t-lg border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2">
+      <button onclick="switchTab('wireguard')" id="tab-wireguard" class="tab-btn px-4 py-2.5 text-xs font-semibold rounded-t-lg border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 whitespace-nowrap">
         <span class="text-base">⚡</span> Модуль 2: WireGuard
       </button>
-      <button onclick="switchTab('telegram')" id="tab-telegram" class="tab-btn px-4 py-2.5 text-xs font-semibold rounded-t-lg border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2">
+      <button onclick="switchTab('telegram')" id="tab-telegram" class="tab-btn px-4 py-2.5 text-xs font-semibold rounded-t-lg border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 whitespace-nowrap">
         <span class="text-base">🤖</span> Модуль 3: Telegram Alerts
       </button>
-      <button onclick="switchTab('defense')" id="tab-defense" class="tab-btn px-4 py-2.5 text-xs font-semibold rounded-t-lg border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2">
+      <button onclick="switchTab('defense')" id="tab-defense" class="tab-btn px-4 py-2.5 text-xs font-semibold rounded-t-lg border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 whitespace-nowrap">
         <span class="text-base">🛑</span> Модуль 4: Brute-Force & Scans
       </button>
-      <button onclick="switchTab('system')" id="tab-system" class="tab-btn px-4 py-2.5 text-xs font-semibold rounded-t-lg border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2">
+      <button onclick="switchTab('system')" id="tab-system" class="tab-btn px-4 py-2.5 text-xs font-semibold rounded-t-lg border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 whitespace-nowrap">
         <span class="text-base">🔒</span> Модуль 5: Харденинг & DoH
       </button>
     </div>
@@ -119,6 +122,10 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex flex-wrap items-center justify-between gap-3 border-t border-slate-800/80 bg-slate-900/50 text-xs">
       <div class="flex flex-wrap items-center gap-2">
         <span class="text-slate-400 font-semibold">Модули в конфигурации:</span>
+        <label class="flex items-center gap-1.5 cursor-pointer bg-slate-800/90 hover:bg-slate-800 px-2.5 py-1 rounded-md border border-slate-700/70 transition text-slate-200">
+          <input type="checkbox" id="mod_enable_init" checked onchange="updateScript()" class="rounded text-cyan-500 focus:ring-0">
+          <span class="font-medium">🚀 0. Инициализация</span>
+        </label>
         <label class="flex items-center gap-1.5 cursor-pointer bg-slate-800/90 hover:bg-slate-800 px-2.5 py-1 rounded-md border border-slate-700/70 transition text-slate-200">
           <input type="checkbox" id="mod_enable_firewall" checked onchange="updateScript()" class="rounded text-cyan-500 focus:ring-0">
           <span class="font-medium">🛡️ 1. Firewall</span>
@@ -155,9 +162,311 @@
     <div class="lg:col-span-7 space-y-6">
 
       <!-- ============================================== -->
+      <!-- TAB 0: INITIAL SETUP MODULE (DAY-0) -->
+      <!-- ============================================== -->
+      <div id="content-init" class="space-y-5">
+        
+        <!-- Info Banner -->
+        <div class="bg-gradient-to-r from-cyan-950/70 to-slate-900 border border-cyan-800/50 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs leading-relaxed text-slate-300">
+          <div class="flex gap-3">
+            <div class="text-cyan-400 text-lg">🚀</div>
+            <div>
+              <strong class="text-cyan-300 font-semibold">Первоначальная настройка роутера с нуля (Day-0 Deployment):</strong>
+              Создание моста локальной сети (Bridge), расчет и поднятие пула DHCP, настройка параметров Wi-Fi (2.4/5 GHz), подключение WAN (DHCP/Static/PPPoE, смена MAC) и базовые политики безопасности вендора.
+            </div>
+          </div>
+          <button onclick="selectOnlyModule('init')" class="shrink-0 text-[11px] bg-cyan-900/60 hover:bg-cyan-800 text-cyan-300 px-3 py-1.5 rounded-lg border border-cyan-700/80 transition flex items-center gap-1.5 whitespace-nowrap">
+            ⚡ Только этот модуль
+          </button>
+        </div>
+
+        <!-- 1. Имя роутера и локальная сеть -->
+        <div class="bg-[#131c2e] border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <h2 class="text-sm font-bold text-white flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-cyan-400"></span> 1. Имя роутера и локальная сеть (LAN Bridge)
+            </h2>
+            <span class="text-[11px] px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800">LAN Core</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Имя устройства (System Identity)</label>
+              <input type="text" id="init_identity" value="MikroTik-Router" class="form-input" oninput="updateScript()">
+              <span class="text-[10px] text-slate-500">Отображается в WinBox, логах и терминале</span>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Имя локального моста (Bridge)</label>
+              <input type="text" id="init_bridge_name" value="bridge-lan" class="form-input" oninput="updateScript()">
+              <span class="text-[10px] text-slate-500">Основной L2-мост для проводных и Wi-Fi клиентов</span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">IP-адрес роутера и маска (LAN Subnet)</label>
+              <input type="text" id="init_lan_ip" value="192.168.88.1/24" class="form-input font-mono" oninput="calcLanPool(); updateScript()">
+              <span class="text-[10px] text-slate-500">Например: 192.168.88.1/24 или 10.10.10.1/24</span>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">LAN-порты в мосту (через запятую)</label>
+              <input type="text" id="init_bridge_ports" value="ether2,ether3,ether4,ether5" class="form-input" oninput="updateScript()">
+              <span class="text-[10px] text-slate-500">Физические порты, объединенные в свитч</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Настройки DHCP Сервера -->
+        <div class="bg-[#131c2e] border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <h2 class="text-sm font-bold text-white flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-cyan-400"></span> 2. Настройка DHCP-сервера
+            </h2>
+            <label class="flex items-center gap-2 cursor-pointer text-xs">
+              <input type="checkbox" id="init_dhcp_enabled" checked onchange="updateScript()" class="rounded text-cyan-500 focus:ring-0">
+              <span class="text-slate-300 font-medium">Включить DHCP-сервер</span>
+            </label>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="sm:col-span-2">
+              <label class="block text-xs font-medium text-slate-400 mb-1">Диапазон адресов пула (IP Pool)</label>
+              <input type="text" id="init_dhcp_pool" value="192.168.88.10-192.168.88.254" class="form-input font-mono" oninput="updateScript()">
+              <span class="text-[10px] text-slate-500">Пул адресов, выдаваемых устройствам в сети</span>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Время аренды (Lease Time)</label>
+              <input type="text" id="init_dhcp_lease" value="12h" class="form-input text-center" oninput="updateScript()">
+              <span class="text-[10px] text-slate-500">12h, 1d, 3d</span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">DNS-серверы для клиентов</label>
+              <input type="text" id="init_dhcp_dns" value="192.168.88.1,1.1.1.1" class="form-input font-mono" oninput="updateScript()">
+              <span class="text-[10px] text-slate-500">Первым адресом рекомендуется IP роутера</span>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Доменный суффикс (Domain Name)</label>
+              <input type="text" id="init_dhcp_domain" value="lan" class="form-input" oninput="updateScript()">
+              <span class="text-[10px] text-slate-500">Например: lan или home</span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs pt-1">
+            <label class="flex items-start gap-2.5 p-3 rounded-lg bg-slate-900/60 border border-slate-800/80 cursor-pointer hover:border-slate-700">
+              <input type="checkbox" id="init_dhcp_arp" checked onchange="updateScript()" class="mt-0.5 rounded text-cyan-500 focus:ring-0">
+              <div>
+                <span class="font-medium text-slate-200">Add ARP For Leases</span>
+                <p class="text-[11px] text-slate-400 mt-0.5">Автоматическое добавление клиентов в ARP-таблицу (защита от подмены IP)</p>
+              </div>
+            </label>
+            <label class="flex items-start gap-2.5 p-3 rounded-lg bg-slate-900/60 border border-slate-800/80 cursor-pointer hover:border-slate-700">
+              <input type="checkbox" id="init_dhcp_authoritative" checked onchange="updateScript()" class="mt-0.5 rounded text-cyan-500 focus:ring-0">
+              <div>
+                <span class="font-medium text-slate-200">Authoritative: Yes</span>
+                <p class="text-[11px] text-slate-400 mt-0.5">Роутер мгновенно отвечает NAK клиентам с чужими IP</p>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- 3. Настройки Wi-Fi -->
+        <div class="bg-[#131c2e] border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <h2 class="text-sm font-bold text-white flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-cyan-400"></span> 3. Настройка беспроводной сети (Wi-Fi)
+            </h2>
+            <label class="flex items-center gap-2 cursor-pointer text-xs">
+              <input type="checkbox" id="init_wifi_enabled" checked onchange="toggleWifiFields(); updateScript()" class="rounded text-cyan-500 focus:ring-0">
+              <span class="text-slate-300 font-medium">Конфигурировать Wi-Fi</span>
+            </label>
+          </div>
+
+          <div id="init_wifi_fields" class="space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Имя сети (SSID)</label>
+                <input type="text" id="init_wifi_ssid" value="MikroTik-Home" class="form-input" oninput="updateScript()">
+                <span class="text-[10px] text-slate-500">Имя беспроводной сети для подключения</span>
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Пароль Wi-Fi (WPA2/WPA3 Pre-Shared Key)</label>
+                <input type="text" id="init_wifi_pass" value="SuperSecurePass2026!" class="form-input font-mono" oninput="updateScript()">
+                <span class="text-[10px] text-slate-500">Минимум 8 символов</span>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Драйвер / Пакет</label>
+                <select id="init_wifi_package" class="form-input text-xs" onchange="updateScript()">
+                  <option value="auto" selected>Универсальный (WiFiWave2 & Classic)</option>
+                  <option value="qcom">WiFi / WiFiWave2 (ax / ac Wave2)</option>
+                  <option value="classic">Wireless Classic (legacy n / ac)</option>
+                </select>
+                <span class="text-[10px] text-slate-500">Подходит под любую модель роутера</span>
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Страна (Регуляторный домен)</label>
+                <select id="init_wifi_country" class="form-input text-xs" onchange="updateScript()">
+                  <option value="Russia">Russia</option>
+                  <option value="Latvia" selected>Latvia</option>
+                  <option value="Germany">Germany</option>
+                  <option value="United States">United States</option>
+                  <option value="manual-txpower">No Country Set</option>
+                </select>
+                <span class="text-[10px] text-slate-500">Определяет частоты и разрешенную мощность</span>
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Протоколы шифрования</label>
+                <select id="init_wifi_security" class="form-input text-xs" onchange="updateScript()">
+                  <option value="wpa2-wpa3" selected>WPA2-PSK + WPA3-SAE (Рекомендовано)</option>
+                  <option value="wpa2-only">Только WPA2-PSK (Для старых устройств)</option>
+                  <option value="wpa3-only">Только WPA3-SAE (Максимальная защита)</option>
+                </select>
+                <span class="text-[10px] text-slate-500">WPA3 защищает от деаутентификации</span>
+              </div>
+            </div>
+
+            <div class="p-3 rounded-lg bg-slate-900/60 border border-slate-800/80">
+              <label class="flex items-start gap-2.5 cursor-pointer">
+                <input type="checkbox" id="init_wifi_hide_ssid" onchange="updateScript()" class="mt-0.5 rounded text-cyan-500 focus:ring-0">
+                <div>
+                  <span class="text-xs font-medium text-slate-200">Скрыть SSID (Hide SSID broadcast)</span>
+                  <p class="text-[11px] text-slate-400 mt-0.5">Сеть не будет видна в общем поиске доступных сетей</p>
+                </div>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Настройка WAN (Интернет-подключение) -->
+        <div class="bg-[#131c2e] border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <h2 class="text-sm font-bold text-white flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-cyan-400"></span> 4. Подключение к интернету (WAN Uplink)
+            </h2>
+            <span class="text-[11px] px-2 py-0.5 rounded bg-blue-950 text-blue-400 border border-blue-800">Internet Gate</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Физический WAN-порт</label>
+              <input type="text" id="init_wan_iface" value="ether1" class="form-input font-mono" oninput="updateScript()">
+              <span class="text-[10px] text-slate-500">Обычно ether1 или sfp-sfpplus1</span>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Тип интернет-подключения</label>
+              <select id="init_wan_proto" class="form-input text-xs" onchange="toggleWanProtoFields(); updateScript()">
+                <option value="dhcp" selected>DHCP-клиент (Динамический IP провайдера - IPoE)</option>
+                <option value="static">Статический IP (Ручной ввод данных договора)</option>
+                <option value="pppoe">PPPoE (Логин и пароль от провайдера)</option>
+              </select>
+              <span class="text-[10px] text-slate-500">Способ получения интернета от оператора</span>
+            </div>
+          </div>
+
+          <!-- Поля для Static IP -->
+          <div id="init_wan_static_container" class="hidden space-y-3 p-3.5 bg-slate-900/80 rounded-lg border border-slate-800">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Статический IP / Маска</label>
+                <input type="text" id="init_wan_static_ip" value="198.51.100.2/24" class="form-input text-xs font-mono" oninput="updateScript()">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Основной шлюз (Gateway)</label>
+                <input type="text" id="init_wan_static_gw" value="198.51.100.1" class="form-input text-xs font-mono" oninput="updateScript()">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">DNS провайдера</label>
+                <input type="text" id="init_wan_static_dns" value="1.1.1.1,8.8.8.8" class="form-input text-xs font-mono" oninput="updateScript()">
+              </div>
+            </div>
+          </div>
+
+          <!-- Поля для PPPoE -->
+          <div id="init_wan_pppoe_container" class="hidden space-y-3 p-3.5 bg-slate-900/80 rounded-lg border border-slate-800">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">PPPoE Логин (Username)</label>
+                <input type="text" id="init_wan_pppoe_user" value="user12345" class="form-input text-xs" oninput="updateScript()">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">PPPoE Пароль (Password)</label>
+                <input type="text" id="init_wan_pppoe_pass" value="ISPSecretPassword" class="form-input text-xs font-mono" oninput="updateScript()">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Имя интерфейса</label>
+                <input type="text" id="init_wan_pppoe_name" value="pppoe-out1" class="form-input text-xs" oninput="updateScript()">
+              </div>
+            </div>
+          </div>
+
+          <!-- Смена MAC-адреса WAN -->
+          <div class="p-3.5 bg-slate-900/60 rounded-lg border border-slate-800/80 space-y-2">
+            <div class="flex items-center justify-between">
+              <label class="flex items-center gap-2 cursor-pointer text-xs">
+                <input type="checkbox" id="init_wan_mac_clone" onchange="toggleMacCloneField(); updateScript()" class="rounded text-cyan-500 focus:ring-0">
+                <span class="text-slate-200 font-medium">Сменить / клонировать MAC-адрес порта WAN</span>
+              </label>
+              <span class="text-[10px] text-slate-500">Если у провайдера привязка по MAC</span>
+            </div>
+            <div id="init_wan_mac_container" class="hidden pt-1">
+              <input type="text" id="init_wan_mac_val" value="00:11:22:33:44:55" placeholder="XX:XX:XX:XX:XX:XX" class="form-input font-mono text-xs !w-64" oninput="updateScript()">
+              <span class="text-[10px] text-slate-500 block mt-1">MAC-адрес старого роутера или сетевой карты ПК</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. Лучшие практики вендора (MikroTik Best Practices) -->
+        <div class="bg-[#131c2e] border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <h2 class="text-sm font-bold text-white flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-cyan-400"></span> 5. Рекомендации вендора и Best Practices
+            </h2>
+            <span class="text-[11px] px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800">Hardening</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <label class="flex items-start gap-2.5 p-3 rounded-lg bg-slate-900/60 border border-slate-800/80 cursor-pointer hover:border-slate-700">
+              <input type="checkbox" id="init_bp_mac_server" checked onchange="updateScript()" class="mt-0.5 rounded text-cyan-500 focus:ring-0">
+              <div>
+                <span class="font-medium text-slate-200">Изолировать MAC-WinBox и Discovery</span>
+                <p class="text-[11px] text-slate-400 mt-0.5">Отключает WinBox по MAC-адресу и обнаружение роутера (MNDP) в сторону WAN</p>
+              </div>
+            </label>
+            <label class="flex items-start gap-2.5 p-3 rounded-lg bg-slate-900/60 border border-slate-800/80 cursor-pointer hover:border-slate-700">
+              <input type="checkbox" id="init_bp_disable_services" checked onchange="updateScript()" class="mt-0.5 rounded text-cyan-500 focus:ring-0">
+              <div>
+                <span class="font-medium text-slate-200">Отключить уязвимые службы</span>
+                <p class="text-[11px] text-slate-400 mt-0.5">Выключает telnet, ftp, plain http (www), api, api-ssl. Оставляет WinBox и SSH</p>
+              </div>
+            </label>
+            <label class="flex items-start gap-2.5 p-3 rounded-lg bg-slate-900/60 border border-slate-800/80 cursor-pointer hover:border-slate-700">
+              <input type="checkbox" id="init_bp_ntp" checked onchange="updateScript()" class="mt-0.5 rounded text-cyan-500 focus:ring-0">
+              <div>
+                <span class="font-medium text-slate-200">Синхронизация времени (SNTP)</span>
+                <p class="text-[11px] text-slate-400 mt-0.5">Включает SNTP-клиент с серверами pool.ntp.org и time.cloudflare.com</p>
+              </div>
+            </label>
+            <label class="flex items-start gap-2.5 p-3 rounded-lg bg-slate-900/60 border border-slate-800/80 cursor-pointer hover:border-slate-700">
+              <input type="checkbox" id="init_bp_dns_cache" checked onchange="updateScript()" class="mt-0.5 rounded text-cyan-500 focus:ring-0">
+              <div>
+                <span class="font-medium text-slate-200">Защищенный DNS-кеш (No Relay)</span>
+                <p class="text-[11px] text-slate-400 mt-0.5">Включает локальный кэширующий DNS, доступный исключительно из локальной сети</p>
+              </div>
+            </label>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ============================================== -->
       <!-- TAB 1: FIREWALL MODULE -->
       <!-- ============================================== -->
-      <div id="content-firewall" class="space-y-5">
+      <div id="content-firewall" class="space-y-5 hidden">
         
         <!-- Info Banner -->
         <div class="bg-gradient-to-r from-blue-950/60 to-slate-900 border border-blue-900/50 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs leading-relaxed text-slate-300">
@@ -1419,13 +1728,81 @@
       });
     }
 
+    // ============================================================
+    // Initial Setup Helper Functions (Module 0)
+    // ============================================================
+    function getNetworkAddress(ipCidr) {
+      const parts = (ipCidr || '').split('/');
+      if (parts.length !== 2) return ipCidr;
+      const ip = parts[0];
+      const mask = parseInt(parts[1], 10);
+      const octets = ip.split('.').map(Number);
+      if (octets.length !== 4 || isNaN(mask)) return ipCidr;
+      const ipNum = ((octets[0] << 24) | (octets[1] << 16) | (octets[2] << 8) | octets[3]) >>> 0;
+      const maskNum = mask === 0 ? 0 : (~0 << (32 - mask)) >>> 0;
+      const netNum = (ipNum & maskNum) >>> 0;
+      const netOctets = [
+        (netNum >>> 24) & 255,
+        (netNum >>> 16) & 255,
+        (netNum >>> 8) & 255,
+        netNum & 255
+      ];
+      return `${netOctets.join('.')}/${mask}`;
+    }
+
+    function calcLanPool() {
+      const lanIpInput = document.getElementById('init_lan_ip')?.value.trim() || '';
+      const match = lanIpInput.match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)\/(\d+)$/);
+      if (match) {
+        const oct1 = match[1];
+        const oct2 = match[2];
+        const oct3 = match[3];
+        const prefix = parseInt(match[5], 10);
+        if (prefix === 24) {
+          const poolInput = document.getElementById('init_dhcp_pool');
+          const dnsInput = document.getElementById('init_dhcp_dns');
+          if (poolInput) poolInput.value = `${oct1}.${oct2}.${oct3}.10-${oct1}.${oct2}.${oct3}.254`;
+          if (dnsInput) dnsInput.value = `${oct1}.${oct2}.${oct3}.1,1.1.1.1`;
+        }
+      }
+    }
+
+    function toggleWanProtoFields() {
+      const proto = document.getElementById('init_wan_proto')?.value || 'dhcp';
+      const staticContainer = document.getElementById('init_wan_static_container');
+      const pppoeContainer = document.getElementById('init_wan_pppoe_container');
+      if (staticContainer) staticContainer.classList.toggle('hidden', proto !== 'static');
+      if (pppoeContainer) pppoeContainer.classList.toggle('hidden', proto !== 'pppoe');
+    }
+
+    function toggleMacCloneField() {
+      const enabled = document.getElementById('init_wan_mac_clone')?.checked ?? false;
+      const container = document.getElementById('init_wan_mac_container');
+      if (container) container.classList.toggle('hidden', !enabled);
+    }
+
+    function toggleWifiFields() {
+      const enabled = document.getElementById('init_wifi_enabled')?.checked ?? true;
+      const fields = document.getElementById('init_wifi_fields');
+      if (fields) {
+        if (enabled) {
+          fields.classList.remove('opacity-50', 'pointer-events-none');
+        } else {
+          fields.classList.add('opacity-50', 'pointer-events-none');
+        }
+      }
+    }
+
     // Tab switching
-    let currentActiveTab = 'firewall';
+    let currentActiveTab = 'init';
+    const allModulesList = ['init', 'firewall', 'wireguard', 'telegram', 'defense', 'system'];
+
     function switchTab(tabId) {
       currentActiveTab = tabId;
-      ['firewall', 'wireguard', 'telegram', 'defense', 'system'].forEach(t => {
+      allModulesList.forEach(t => {
         const btn = document.getElementById('tab-' + t);
         const content = document.getElementById('content-' + t);
+        if (!btn || !content) return;
         if (t === tabId) {
           btn.className = 'tab-btn px-4 py-2.5 text-xs font-semibold rounded-t-lg border-b-2 flex items-center gap-2 tab-active';
           content.classList.remove('hidden');
@@ -1439,23 +1816,29 @@
 
     // Module inclusion management
     function setModulesMode(mode) {
-      const mods = ['firewall', 'wireguard', 'telegram', 'defense', 'system'];
       if (mode === 'all') {
-        mods.forEach(m => document.getElementById('mod_enable_' + m).checked = true);
+        allModulesList.forEach(m => {
+          const el = document.getElementById('mod_enable_' + m);
+          if (el) el.checked = true;
+        });
       } else if (mode === 'none') {
-        mods.forEach(m => document.getElementById('mod_enable_' + m).checked = false);
+        allModulesList.forEach(m => {
+          const el = document.getElementById('mod_enable_' + m);
+          if (el) el.checked = false;
+        });
       } else if (mode === 'only_current') {
-        mods.forEach(m => {
-          document.getElementById('mod_enable_' + m).checked = (m === currentActiveTab);
+        allModulesList.forEach(m => {
+          const el = document.getElementById('mod_enable_' + m);
+          if (el) el.checked = (m === currentActiveTab);
         });
       }
       updateScript();
     }
 
     function selectOnlyModule(modId) {
-      const mods = ['firewall', 'wireguard', 'telegram', 'defense', 'system'];
-      mods.forEach(m => {
-        document.getElementById('mod_enable_' + m).checked = (m === modId);
+      allModulesList.forEach(m => {
+        const el = document.getElementById('mod_enable_' + m);
+        if (el) el.checked = (m === modId);
       });
       switchTab(modId);
     }
@@ -1523,12 +1906,52 @@
     // Main Script Generator (Full Architecture)
     function updateScript() {
       // 0. Module selection state
+      const modInit = document.getElementById('mod_enable_init')?.checked ?? true;
       const modFirewall = document.getElementById('mod_enable_firewall')?.checked ?? true;
       const modWireguard = document.getElementById('mod_enable_wireguard')?.checked ?? true;
       const modTelegram = document.getElementById('mod_enable_telegram')?.checked ?? true;
       const modDefense = document.getElementById('mod_enable_defense')?.checked ?? true;
       const modSystem = document.getElementById('mod_enable_system')?.checked ?? true;
-      const activeCount = [modFirewall, modWireguard, modTelegram, modDefense, modSystem].filter(Boolean).length;
+      const activeCount = [modInit, modFirewall, modWireguard, modTelegram, modDefense, modSystem].filter(Boolean).length;
+
+      // Module 0: Initial Setup Baseline params
+      const initIdentity = document.getElementById('init_identity')?.value.trim() || 'MikroTik-Router';
+      const initBridgeName = document.getElementById('init_bridge_name')?.value.trim() || 'bridge-lan';
+      const initLanIp = document.getElementById('init_lan_ip')?.value.trim() || '192.168.88.1/24';
+      const initBridgePorts = (document.getElementById('init_bridge_ports')?.value || '')
+        .split(',').map(s => s.trim()).filter(Boolean);
+
+      const initDhcpEnabled = document.getElementById('init_dhcp_enabled')?.checked ?? true;
+      const initDhcpPool = document.getElementById('init_dhcp_pool')?.value.trim() || '192.168.88.10-192.168.88.254';
+      const initDhcpLease = document.getElementById('init_dhcp_lease')?.value.trim() || '12h';
+      const initDhcpDns = document.getElementById('init_dhcp_dns')?.value.trim() || '192.168.88.1,1.1.1.1';
+      const initDhcpDomain = document.getElementById('init_dhcp_domain')?.value.trim() || 'lan';
+      const initDhcpArp = document.getElementById('init_dhcp_arp')?.checked ?? true;
+      const initDhcpAuth = document.getElementById('init_dhcp_authoritative')?.checked ?? true;
+
+      const initWifiEnabled = document.getElementById('init_wifi_enabled')?.checked ?? true;
+      const initWifiSsid = document.getElementById('init_wifi_ssid')?.value.trim() || 'MikroTik-Home';
+      const initWifiPass = document.getElementById('init_wifi_pass')?.value.trim() || 'SuperSecurePass2026!';
+      const initWifiPackage = document.getElementById('init_wifi_package')?.value || 'auto';
+      const initWifiCountry = document.getElementById('init_wifi_country')?.value || 'Latvia';
+      const initWifiSecurity = document.getElementById('init_wifi_security')?.value || 'wpa2-wpa3';
+      const initWifiHideSsid = document.getElementById('init_wifi_hide_ssid')?.checked ?? false;
+
+      const initWanIface = document.getElementById('init_wan_iface')?.value.trim() || 'ether1';
+      const initWanProto = document.getElementById('init_wan_proto')?.value || 'dhcp';
+      const initWanStaticIp = document.getElementById('init_wan_static_ip')?.value.trim() || '198.51.100.2/24';
+      const initWanStaticGw = document.getElementById('init_wan_static_gw')?.value.trim() || '198.51.100.1';
+      const initWanStaticDns = document.getElementById('init_wan_static_dns')?.value.trim() || '1.1.1.1,8.8.8.8';
+      const initWanPppoeUser = document.getElementById('init_wan_pppoe_user')?.value.trim() || 'user12345';
+      const initWanPppoePass = document.getElementById('init_wan_pppoe_pass')?.value.trim() || 'ISPSecretPassword';
+      const initWanPppoeName = document.getElementById('init_wan_pppoe_name')?.value.trim() || 'pppoe-out1';
+      const initWanMacClone = document.getElementById('init_wan_mac_clone')?.checked ?? false;
+      const initWanMacVal = document.getElementById('init_wan_mac_val')?.value.trim() || '00:11:22:33:44:55';
+
+      const initBpMacServer = document.getElementById('init_bp_mac_server')?.checked ?? true;
+      const initBpDisableServices = document.getElementById('init_bp_disable_services')?.checked ?? true;
+      const initBpNtp = document.getElementById('init_bp_ntp')?.checked ?? true;
+      const initBpDnsCache = document.getElementById('init_bp_dns_cache')?.checked ?? true;
 
       // 1. Firewall params
       const ispIfaces = document.getElementById('fw_isp_interfaces').value.split(',').map(s => s.trim()).filter(Boolean);
@@ -1578,7 +2001,8 @@
       rsc.push(`# MikroTik RouterOS v7 - Production Network Configuration`);
       rsc.push(`# Architecture: vasilevkirill.ru & MikroTik Enterprise Best Practices`);
       rsc.push(`# Generated: ${new Date().toISOString().replace('T', ' ').substring(0, 19)} UTC`);
-      rsc.push(`# Active Modules (${activeCount}/5): ${[
+      rsc.push(`# Active Modules (${activeCount}/6): ${[
+        modInit ? '0.Baseline' : '',
         modFirewall ? '1.Firewall' : '',
         modWireguard ? '2.WireGuard' : '',
         modTelegram ? '3.Telegram' : '',
@@ -1592,8 +2016,154 @@
         rsc.push(`# Please check at least one module in the top bar above.`);
         const finalScript = rsc.join('\n');
         document.getElementById('outputCode').textContent = finalScript;
-        document.getElementById('stats-badge').textContent = `0 строк (0 из 5 модулей)`;
+        document.getElementById('stats-badge').textContent = `0 строк (0 из 6 модулей)`;
         return;
+      }
+
+      // -------------------------------------------------------------
+      // 0. MODULE: INITIAL SETUP & BASELINE CONFIGURATION
+      // -------------------------------------------------------------
+      if (modInit) {
+        rsc.push(`# =====================================================================`);
+        rsc.push(`# 0. MODULE: INITIAL SETUP & BASELINE CONFIGURATION (Day-0 Setup)`);
+        rsc.push(`# =====================================================================`);
+        rsc.push(`/system identity set name="${translit(initIdentity) || 'MikroTik'}"\n`);
+
+        // L2 Bridge & LAN Ports
+        rsc.push(`# --- L2 Bridge & LAN Switch Ports ---`);
+        rsc.push(`/interface bridge`);
+        rsc.push(`add name="${initBridgeName}" comment="Primary LAN Core Bridge"`);
+        if (initBridgePorts.length > 0) {
+          rsc.push(`/interface bridge port`);
+          initBridgePorts.forEach(p => {
+            rsc.push(`add bridge="${initBridgeName}" interface="${p}" comment="LAN switch port"`);
+          });
+        }
+        rsc.push(``);
+
+        // LAN IP Address
+        rsc.push(`# --- LAN IP Addressing ---`);
+        rsc.push(`/ip address`);
+        rsc.push(`add address=${initLanIp} interface="${initBridgeName}" comment="Primary LAN Gateway IP"\n`);
+
+        // DHCP Server
+        if (initDhcpEnabled) {
+          const lanNet = getNetworkAddress(initLanIp);
+          const lanGw = initLanIp.split('/')[0];
+          rsc.push(`# --- DHCP Server & Pool ---`);
+          rsc.push(`/ip pool`);
+          rsc.push(`add name="${initBridgeName}-pool" ranges=${initDhcpPool} comment="LAN DHCP IP Pool"`);
+          rsc.push(`/ip dhcp-server`);
+          rsc.push(`add name="${initBridgeName}-dhcp" interface="${initBridgeName}" address-pool="${initBridgeName}-pool" lease-time=${initDhcpLease} add-arp=${initDhcpArp ? 'yes' : 'no'} authoritative=${initDhcpAuth ? 'yes' : 'no'} disabled=no`);
+          rsc.push(`/ip dhcp-server network`);
+          rsc.push(`add address=${lanNet} gateway=${lanGw} dns-server=${initDhcpDns} domain="${initDhcpDomain}" comment="LAN DHCP Scope Network"\n`);
+        }
+
+        // WAN Uplink & MAC
+        rsc.push(`# --- WAN Uplink & Interface Setup ---`);
+        if (initWanMacClone && initWanMacVal) {
+          rsc.push(`/interface ethernet set [find name="${initWanIface}" or default-name="${initWanIface}"] mac-address="${initWanMacVal}" comment="Cloned WAN MAC address"`);
+        }
+        if (initWanProto === 'dhcp') {
+          rsc.push(`/ip dhcp-client`);
+          rsc.push(`add interface="${initWanIface}" add-default-route=yes use-peer-dns=yes use-peer-ntp=yes disabled=no comment="WAN DHCP Client"`);
+        } else if (initWanProto === 'static') {
+          rsc.push(`/ip address`);
+          rsc.push(`add address=${initWanStaticIp} interface="${initWanIface}" comment="WAN Static IP"`);
+          rsc.push(`/ip route`);
+          rsc.push(`add gateway=${initWanStaticGw} comment="Default Internet Gateway Route"`);
+          if (initWanStaticDns) {
+            rsc.push(`/ip dns`);
+            rsc.push(`set servers=${initWanStaticDns}`);
+          }
+        } else if (initWanProto === 'pppoe') {
+          rsc.push(`/interface pppoe-client`);
+          rsc.push(`add interface="${initWanIface}" name="${initWanPppoeName}" user="${initWanPppoeUser}" password="${initWanPppoePass}" add-default-route=yes use-peer-dns=yes disabled=no comment="WAN PPPoE Connection"`);
+        }
+        rsc.push(``);
+
+        // Wi-Fi
+        if (initWifiEnabled) {
+          const ssidClean = translit(initWifiSsid) || 'MikroTik-WiFi';
+          const countryParam = (initWifiCountry && initWifiCountry !== 'manual-txpower') ? ` country="${initWifiCountry}"` : '';
+          const hideSsidVal = initWifiHideSsid ? 'yes' : 'no';
+
+          rsc.push(`# --- Wireless / Wi-Fi Configuration ---`);
+          if (initWifiPackage === 'qcom') {
+            const wifiAuth = initWifiSecurity === 'wpa2-only' ? 'wpa2-psk' : (initWifiSecurity === 'wpa3-only' ? 'wpa3-sae' : 'wpa2-psk,wpa3-sae');
+            rsc.push(`/interface wifi security add name="sec-${ssidClean}" authentication-types=${wifiAuth} passphrase="${initWifiPass}"`);
+            rsc.push(`/interface wifi configuration add name="cfg-${ssidClean}" ssid="${initWifiSsid}" security="sec-${ssidClean}"${countryParam} hide-ssid=${hideSsidVal}`);
+            rsc.push(`/interface wifi set [find] configuration="cfg-${ssidClean}" disabled=no`);
+          } else if (initWifiPackage === 'classic') {
+            rsc.push(`/interface wireless security-profiles add name="sec-${ssidClean}" mode=dynamic-keys authentication-types=wpa2-psk wpa2-pre-shared-key="${initWifiPass}" supplicant-identity="MikroTik"`);
+            rsc.push(`/interface wireless set [find] mode=ap-bridge ssid="${initWifiSsid}" security-profile="sec-${ssidClean}"${countryParam} hide-ssid=${hideSsidVal} disabled=no`);
+          } else {
+            // Auto / Universal
+            const wifiAuth = initWifiSecurity === 'wpa2-only' ? 'wpa2-psk' : (initWifiSecurity === 'wpa3-only' ? 'wpa3-sae' : 'wpa2-psk,wpa3-sae');
+            rsc.push(`:if ([:len [/system package find name="wifi" or name="wifiwave2"]] > 0 or [:len [/interface wifi find]] > 0) do={`);
+            rsc.push(`  /interface wifi security add name="sec-${ssidClean}" authentication-types=${wifiAuth} passphrase="${initWifiPass}"`);
+            rsc.push(`  /interface wifi configuration add name="cfg-${ssidClean}" ssid="${initWifiSsid}" security="sec-${ssidClean}"${countryParam} hide-ssid=${hideSsidVal}`);
+            rsc.push(`  /interface wifi set [find] configuration="cfg-${ssidClean}" disabled=no`);
+            rsc.push(`} else={`);
+            rsc.push(`  /interface wireless security-profiles add name="sec-${ssidClean}" mode=dynamic-keys authentication-types=wpa2-psk wpa2-pre-shared-key="${initWifiPass}" supplicant-identity="MikroTik"`);
+            rsc.push(`  /interface wireless set [find] mode=ap-bridge ssid="${initWifiSsid}" security-profile="sec-${ssidClean}"${countryParam} hide-ssid=${hideSsidVal} disabled=no`);
+            rsc.push(`}`);
+          }
+
+          // Add Wi-Fi interfaces to LAN Bridge
+          rsc.push(`# Join Wi-Fi interfaces into LAN Bridge`);
+          rsc.push(`:if ([:len [/interface wifi find]] > 0) do={`);
+          rsc.push(`  :foreach w in=[/interface wifi find] do={`);
+          rsc.push(`    :local wName [/interface wifi get $w name];`);
+          rsc.push(`    :if ([:len [/interface bridge port find interface=$wName]] = 0) do={`);
+          rsc.push(`      /interface bridge port add bridge="${initBridgeName}" interface=$wName comment="Wi-Fi AP to LAN Bridge"`);
+          rsc.push(`    }`);
+          rsc.push(`  }`);
+          rsc.push(`}`);
+          rsc.push(`:if ([:len [/interface wireless find]] > 0) do={`);
+          rsc.push(`  :foreach w in=[/interface wireless find] do={`);
+          rsc.push(`    :local wName [/interface wireless get $w name];`);
+          rsc.push(`    :if ([:len [/interface bridge port find interface=$wName]] = 0) do={`);
+          rsc.push(`      /interface bridge port add bridge="${initBridgeName}" interface=$wName comment="Wireless AP to LAN Bridge"`);
+          rsc.push(`    }`);
+          rsc.push(`  }`);
+          rsc.push(`}\n`);
+        }
+
+        // Vendor Hardening & Best Practices
+        if (initBpMacServer || initBpDisableServices || initBpNtp || initBpDnsCache) {
+          rsc.push(`# --- Vendor Hardening & Security Best Practices ---`);
+          if (initBpMacServer) {
+            const effectiveWanIface = initWanProto === 'pppoe' ? initWanPppoeName : initWanIface;
+            rsc.push(`/interface list`);
+            rsc.push(`:if ([:len [find name=LAN]] = 0) do={ add name=LAN comment="Local Protected Interfaces" }`);
+            rsc.push(`:if ([:len [find name=WAN]] = 0) do={ add name=WAN comment="Internet Uplinks" }`);
+            rsc.push(`/interface list member`);
+            rsc.push(`:if ([:len [find list=LAN interface="${initBridgeName}"]] = 0) do={ add list=LAN interface="${initBridgeName}" }`);
+            rsc.push(`:if ([:len [find list=WAN interface="${effectiveWanIface}"]] = 0) do={ add list=WAN interface="${effectiveWanIface}" }`);
+            rsc.push(`/tool mac-server set allowed-interface-list=LAN`);
+            rsc.push(`/tool mac-server mac-winbox set allowed-interface-list=LAN`);
+            rsc.push(`/ip neighbor-discovery-settings set discover-interface-list=LAN`);
+          }
+          if (initBpDisableServices) {
+            rsc.push(`/ip service disable [find name="telnet"]`);
+            rsc.push(`/ip service disable [find name="ftp"]`);
+            rsc.push(`/ip service disable [find name="www"]`);
+            rsc.push(`/ip service disable [find name="api"]`);
+            rsc.push(`/ip service disable [find name="api-ssl"]`);
+          }
+          if (initBpNtp) {
+            rsc.push(`/system clock set time-zone-autodetect=yes`);
+            rsc.push(`/system ntp client set enabled=yes`);
+            rsc.push(`/system ntp client servers`);
+            rsc.push(`:if ([:len [find address="pool.ntp.org"]] = 0) do={ add address="pool.ntp.org" comment="NTP Pool" }`);
+            rsc.push(`:if ([:len [find address="time.cloudflare.com"]] = 0) do={ add address="time.cloudflare.com" comment="Cloudflare NTP" }`);
+          }
+          if (initBpDnsCache) {
+            rsc.push(`/ip dns set allow-remote-requests=yes cache-size=4096KiB max-concurrent-queries=200 max-concurrent-tcp-sessions=50`);
+          }
+          rsc.push(``);
+        }
       }
 
       // -------------------------------------------------------------
@@ -2066,7 +2636,7 @@
 
       const finalScript = rsc.join('\n');
       document.getElementById('outputCode').textContent = finalScript;
-      document.getElementById('stats-badge').textContent = `${rsc.length} строк (${activeCount} из 5 модулей)`;
+      document.getElementById('stats-badge').textContent = `${rsc.length} строк (${activeCount} из 6 модулей)`;
     }
 
     // Copy test command for CLI
@@ -2119,6 +2689,9 @@
 
     // Init
     window.addEventListener('DOMContentLoaded', () => {
+      toggleWanProtoFields();
+      toggleMacCloneField();
+      toggleWifiFields();
       regenRouterKeys();
       addClient({ name: 'Mobile Admin (iPhone)', clientType: 'generic', tunIp: '10.255.255.2', routeMode: 'all' });
       addClient({ name: 'Home MikroTik (Admin)', clientType: 'mikrotik', tunIp: '10.255.255.3', routeMode: 'split' });
