@@ -2230,14 +2230,14 @@
             rsc.push(`:if ([:len [find list=WAN interface="${effectiveWanIface}"]] = 0) do={ add list=WAN interface="${effectiveWanIface}" }`);
             rsc.push(`/tool mac-server set allowed-interface-list=LAN`);
             rsc.push(`/tool mac-server mac-winbox set allowed-interface-list=LAN`);
-            rsc.push(`/ip neighbor-discovery-settings set discover-interface-list=LAN`);
+            rsc.push(`/ip neighbor discovery-settings set discover-interface-list=LAN`);
           }
           if (initBpDisableServices) {
-            rsc.push(`/ip service disable [find name="telnet"]`);
-            rsc.push(`/ip service disable [find name="ftp"]`);
-            rsc.push(`/ip service disable [find name="www"]`);
-            rsc.push(`/ip service disable [find name="api"]`);
-            rsc.push(`/ip service disable [find name="api-ssl"]`);
+            rsc.push(`/ip service set [find name="telnet"] disabled=yes`);
+            rsc.push(`/ip service set [find name="ftp"] disabled=yes`);
+            rsc.push(`/ip service set [find name="www"] disabled=yes`);
+            rsc.push(`/ip service set [find name="api"] disabled=yes`);
+            rsc.push(`/ip service set [find name="api-ssl"] disabled=yes`);
           }
           if (initBpNtp) {
             rsc.push(`/system clock set time-zone-autodetect=yes`);
