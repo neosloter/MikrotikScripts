@@ -2549,7 +2549,16 @@
           // DHCP Lease Trigger
           if (tgEvtDhcp) {
             rsc.push(`/ip dhcp-server`);
-            rsc.push(`:if ([:len [find]] > 0) do={ set [find] lease-script={ :if ($leaseBound = 1) do={ :global tgMsg ("New DHCP Client IP: " . $leaseActIP . " MAC: " . $leaseActMAC . " Host: " . $"lease-hostname"); /system script run TgSend } } }\n`);
+            rsc.push(`:if ([:len [find]] > 0) do={
+    set [find] lease-script={
+        :if ($leaseBound = "1" or $leaseBound = 1) do={
+            :local hName $"lease-hostname"
+            :if ([:typeof $hName] = "nothing" or [:len $hName] = 0) do={ :set hName "unknown" }
+            :global tgMsg ("New DHCP Client IP: " . $leaseActIP . " MAC: " . $leaseActMAC . " Host: " . $hName)
+            /system script run TgSend
+        }
+    }
+}\n`);
           }
         }
       }
