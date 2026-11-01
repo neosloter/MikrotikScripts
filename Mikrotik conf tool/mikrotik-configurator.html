@@ -197,7 +197,7 @@
             </div>
             <div>
               <label class="block text-xs font-medium text-slate-400 mb-1">Имя локального моста (Bridge)</label>
-              <input type="text" id="init_bridge_name" value="bridge-lan" class="form-input" oninput="updateScript()">
+              <input type="text" id="init_bridge_name" value="bridge-lan" class="form-input" oninput="syncInitialSetupToTabs(); updateScript()">
               <span class="text-[10px] text-slate-500">Основной L2-мост для проводных и Wi-Fi клиентов</span>
             </div>
           </div>
@@ -205,7 +205,7 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-medium text-slate-400 mb-1">IP-адрес роутера и маска (LAN Subnet)</label>
-              <input type="text" id="init_lan_ip" value="192.168.88.1/24" class="form-input font-mono" oninput="calcLanPool(); updateScript()">
+              <input type="text" id="init_lan_ip" value="192.168.88.1/24" class="form-input font-mono" oninput="calcLanPool(); syncInitialSetupToTabs(); updateScript()">
               <span class="text-[10px] text-slate-500">Например: 192.168.88.1/24 или 10.10.10.1/24</span>
             </div>
             <div>
@@ -354,12 +354,12 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-medium text-slate-400 mb-1">Физический WAN-порт</label>
-              <input type="text" id="init_wan_iface" value="ether1" class="form-input font-mono" oninput="updateScript()">
+              <input type="text" id="init_wan_iface" value="ether1" class="form-input font-mono" oninput="syncInitialSetupToTabs(); updateScript()">
               <span class="text-[10px] text-slate-500">Обычно ether1 или sfp-sfpplus1</span>
             </div>
             <div>
               <label class="block text-xs font-medium text-slate-400 mb-1">Тип интернет-подключения</label>
-              <select id="init_wan_proto" class="form-input text-xs" onchange="toggleWanProtoFields(); updateScript()">
+              <select id="init_wan_proto" class="form-input text-xs" onchange="toggleWanProtoFields(); syncInitialSetupToTabs(); updateScript()">
                 <option value="dhcp" selected>DHCP-клиент (Динамический IP провайдера - IPoE)</option>
                 <option value="static">Статический IP (Ручной ввод данных договора)</option>
                 <option value="pppoe">PPPoE (Логин и пароль от провайдера)</option>
@@ -399,7 +399,7 @@
               </div>
               <div>
                 <label class="block text-xs font-medium text-slate-400 mb-1">Имя интерфейса</label>
-                <input type="text" id="init_wan_pppoe_name" value="pppoe-out1" class="form-input text-xs" oninput="updateScript()">
+                <input type="text" id="init_wan_pppoe_name" value="pppoe-out1" class="form-input text-xs" oninput="syncInitialSetupToTabs(); updateScript()">
               </div>
             </div>
           </div>
@@ -495,12 +495,12 @@
             </div>
             <div>
               <label class="block text-xs font-medium text-slate-400 mb-1">Интерфейсы LAN (Local)</label>
-              <input type="text" id="fw_local_interfaces" value="bridge" class="form-input" oninput="updateScript()">
-              <span class="text-[10px] text-slate-500">bridge, vlan-users, ether2</span>
+              <input type="text" id="fw_local_interfaces" value="bridge-lan" class="form-input" oninput="updateScript()">
+              <span class="text-[10px] text-slate-500">bridge-lan, vlan-users, ether2</span>
             </div>
             <div>
               <label class="block text-xs font-medium text-slate-400 mb-1">Management Интерфейс</label>
-              <input type="text" id="fw_mgmt_interface" value="bridge" class="form-input" oninput="updateScript()">
+              <input type="text" id="fw_mgmt_interface" value="bridge-lan" class="form-input" oninput="updateScript()">
               <span class="text-[10px] text-slate-500">Интерфейс для администрирования</span>
             </div>
           </div>
@@ -671,7 +671,7 @@
             </div>
             <div>
               <label class="block text-xs font-medium text-slate-400 mb-1">Локальная сеть сервера (Head Office LAN)</label>
-              <input type="text" id="wg_local_lan" value="192.168.1.0/24" class="form-input text-xs font-mono" oninput="updateScript()">
+              <input type="text" id="wg_local_lan" value="192.168.88.0/24" class="form-input text-xs font-mono" oninput="updateScript()">
               <span class="text-[10px] text-slate-500">Сеть офиса для маршрутизации клиентам и филиалам</span>
             </div>
             <div>
@@ -1757,14 +1757,50 @@
         const oct1 = match[1];
         const oct2 = match[2];
         const oct3 = match[3];
+        const oct4 = match[4];
         const prefix = parseInt(match[5], 10);
+        const poolInput = document.getElementById('init_dhcp_pool');
+        const dnsInput = document.getElementById('init_dhcp_dns');
         if (prefix === 24) {
-          const poolInput = document.getElementById('init_dhcp_pool');
-          const dnsInput = document.getElementById('init_dhcp_dns');
           if (poolInput) poolInput.value = `${oct1}.${oct2}.${oct3}.10-${oct1}.${oct2}.${oct3}.254`;
-          if (dnsInput) dnsInput.value = `${oct1}.${oct2}.${oct3}.1,1.1.1.1`;
+          if (dnsInput) dnsInput.value = `${oct1}.${oct2}.${oct3}.${oct4},1.1.1.1`;
+        } else if (prefix === 16) {
+          if (poolInput) poolInput.value = `${oct1}.${oct2}.1.10-${oct1}.${oct2}.254.254`;
+          if (dnsInput) dnsInput.value = `${oct1}.${oct2}.${oct3}.${oct4},1.1.1.1`;
+        } else {
+          if (dnsInput) dnsInput.value = `${oct1}.${oct2}.${oct3}.${oct4},1.1.1.1`;
         }
       }
+    }
+
+    // Synchronize initial baseline parameters (Subnet, Bridge, WAN) across all tabs
+    function syncInitialSetupToTabs() {
+      calcLanPool();
+      const bridgeName = document.getElementById('init_bridge_name')?.value.trim() || 'bridge-lan';
+      const lanIp = document.getElementById('init_lan_ip')?.value.trim() || '192.168.88.1/24';
+      const wanIface = document.getElementById('init_wan_iface')?.value.trim() || 'ether1';
+      const wanProto = document.getElementById('init_wan_proto')?.value || 'dhcp';
+      const pppoeName = document.getElementById('init_wan_pppoe_name')?.value.trim() || 'pppoe-out1';
+
+      const lanSubnet = getNetworkAddress(lanIp);
+
+      // 1. Sync Bridge to Firewall module (Local Networks & Management Interface)
+      const fwLocal = document.getElementById('fw_local_interfaces');
+      const fwMgmt = document.getElementById('fw_mgmt_interface');
+      if (fwLocal) fwLocal.value = bridgeName;
+      if (fwMgmt) fwMgmt.value = bridgeName;
+
+      // 2. Sync LAN Subnet to Firewall trusted subnets and WireGuard local LAN
+      const fwTrusted = document.getElementById('fw_trusted_subnets');
+      if (fwTrusted && lanSubnet) fwTrusted.value = lanSubnet;
+
+      const wgLocalLan = document.getElementById('wg_local_lan');
+      if (wgLocalLan && lanSubnet) wgLocalLan.value = lanSubnet;
+
+      // 3. Sync WAN interface to Firewall ISP interface
+      const fwIsp = document.getElementById('fw_isp_interfaces');
+      const effectiveWan = (wanProto === 'pppoe') ? pppoeName : wanIface;
+      if (fwIsp && effectiveWan) fwIsp.value = effectiveWan;
     }
 
     function toggleWanProtoFields() {
@@ -1884,19 +1920,25 @@
 
     // Presets
     function applyPreset(name) {
+      const currentBridge = document.getElementById('init_bridge_name')?.value.trim() || 'bridge-lan';
+      const currentLanSubnet = getNetworkAddress(document.getElementById('init_lan_ip')?.value.trim() || '192.168.88.1/24');
+      const currentWan = (document.getElementById('init_wan_proto')?.value === 'pppoe') 
+        ? (document.getElementById('init_wan_pppoe_name')?.value.trim() || 'pppoe-out1')
+        : (document.getElementById('init_wan_iface')?.value.trim() || 'ether1');
+
       if (name === 'office') {
-        document.getElementById('fw_isp_interfaces').value = 'ether1';
-        document.getElementById('fw_local_interfaces').value = 'bridge';
-        document.getElementById('fw_mgmt_interface').value = 'bridge';
-        document.getElementById('fw_trusted_subnets').value = '192.168.88.0/24';
+        document.getElementById('fw_isp_interfaces').value = currentWan;
+        document.getElementById('fw_local_interfaces').value = currentBridge;
+        document.getElementById('fw_mgmt_interface').value = currentBridge;
+        document.getElementById('fw_trusted_subnets').value = currentLanSubnet || '192.168.88.0/24';
         document.getElementById('fw_fasttrack').checked = true;
         document.getElementById('fw_allow_icmp').checked = true;
         document.getElementById('fw_icmp_limit').value = '5,10:packet';
       } else if (name === 'paranoid') {
-        document.getElementById('fw_isp_interfaces').value = 'ether1';
-        document.getElementById('fw_local_interfaces').value = 'bridge';
+        document.getElementById('fw_isp_interfaces').value = currentWan;
+        document.getElementById('fw_local_interfaces').value = currentBridge;
         document.getElementById('fw_mgmt_interface').value = 'ether5';
-        document.getElementById('fw_trusted_subnets').value = '192.168.99.10/32';
+        document.getElementById('fw_trusted_subnets').value = currentLanSubnet ? currentLanSubnet.replace(/\.0\/\d+$/, '.10/32') : '192.168.99.10/32';
         document.getElementById('fw_fasttrack').checked = false;
         document.getElementById('fw_allow_icmp').checked = false;
       }
@@ -2689,6 +2731,7 @@
 
     // Init
     window.addEventListener('DOMContentLoaded', () => {
+      syncInitialSetupToTabs();
       toggleWanProtoFields();
       toggleMacCloneField();
       toggleWifiFields();
