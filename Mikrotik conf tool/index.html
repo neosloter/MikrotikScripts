@@ -2431,7 +2431,7 @@
         // Forward chain
         rsc.push(`# --- Chain: forward (Transit Traffic) ---`);
         if (fastTrack) {
-          rsc.push(`add chain=forward action=fasttrack-connection connection-state=established,related comment="FastTrack Engine"`);
+          rsc.push(`add chain=forward action=fasttrack-connection connection-state=established,related connection-mark=no-mark comment="FastTrack Engine (Skip marked connections)"`);
         }
         rsc.push(`add chain=forward connection-state=established,related,untracked action=accept comment="Accept Established/Related"`);
         rsc.push(`add chain=forward connection-state=invalid action=drop comment="Drop Invalid forward"`);
@@ -2448,6 +2448,7 @@
           }
           rsc.push(`add chain=forward connection-nat-state=dstnat action=accept comment="Accept DST-NAT (Port Forwarding)"`);
         }
+        rsc.push(`add chain=forward connection-mark=!no-mark action=accept comment="Accept Marked Traffic (Dual-WAN / Policy-Routing / VPN)"`);
         rsc.push(`add chain=forward action=drop comment="DEFAULT DROP: Drop unauthorized forward"\n`);
 
         // NAT
