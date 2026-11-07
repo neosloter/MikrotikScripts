@@ -51,6 +51,29 @@
       border-color: #38bdf8;
       box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
     }
+  
+    /* Line numbers and code container */
+    #lineNumbersGutter {
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .search-match {
+      background-color: rgba(234, 179, 8, 0.4);
+      color: #fef08a;
+      border-radius: 2px;
+      padding: 0 1px;
+    }
+    .search-match.current-match {
+      background-color: #38bdf8;
+      color: #020617;
+      font-weight: 700;
+      outline: 2px solid #0284c7;
+    }
+    .copy-section-btn:hover svg {
+      transform: scale(1.15);
+      transition: transform 0.15s ease-in-out;
+    }
+
   </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -186,7 +209,13 @@
             <h2 class="text-sm font-bold text-white flex items-center gap-2">
               <span class="w-2 h-2 rounded-full bg-cyan-400"></span> 1. Имя роутера и локальная сеть (LAN Bridge)
             </h2>
-            <span class="text-[11px] px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800">LAN Core</span>
+            <div class="flex items-center gap-2">
+              <span class="text-[11px] px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800">LAN Core</span>
+              <button onclick="copySection('init_lan', 'LAN Bridge & Identity')" type="button" title="Скопировать только команды этого раздела" class="copy-section-btn text-[11px] text-slate-400 hover:text-cyan-300 bg-slate-900/80 hover:bg-slate-800 px-2 py-0.5 rounded border border-slate-700/60 transition flex items-center gap-1 shrink-0">
+  <svg class="w-3 h-3 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+  <span>Скопировать блок</span>
+</button>
+            </div>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -222,10 +251,16 @@
             <h2 class="text-sm font-bold text-white flex items-center gap-2">
               <span class="w-2 h-2 rounded-full bg-cyan-400"></span> 2. Настройка DHCP-сервера
             </h2>
-            <label class="flex items-center gap-2 cursor-pointer text-xs">
+            <div class="flex items-center gap-2">
+              <label class="flex items-center gap-2 cursor-pointer text-xs">
               <input type="checkbox" id="init_dhcp_enabled" checked onchange="updateScript()" class="rounded text-cyan-500 focus:ring-0">
               <span class="text-slate-300 font-medium">Включить DHCP-сервер</span>
             </label>
+              <button onclick="copySection('init_dhcp', 'DHCP-сервер')" type="button" title="Скопировать только команды этого раздела" class="copy-section-btn text-[11px] text-slate-400 hover:text-cyan-300 bg-slate-900/80 hover:bg-slate-800 px-2 py-0.5 rounded border border-slate-700/60 transition flex items-center gap-1 shrink-0">
+  <svg class="w-3 h-3 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+  <span>Скопировать блок</span>
+</button>
+            </div>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -278,10 +313,16 @@
             <h2 class="text-sm font-bold text-white flex items-center gap-2">
               <span class="w-2 h-2 rounded-full bg-cyan-400"></span> 3. Настройка беспроводной сети (Wi-Fi)
             </h2>
-            <label class="flex items-center gap-2 cursor-pointer text-xs">
+            <div class="flex items-center gap-2">
+              <label class="flex items-center gap-2 cursor-pointer text-xs">
               <input type="checkbox" id="init_wifi_enabled" checked onchange="toggleWifiFields(); updateScript()" class="rounded text-cyan-500 focus:ring-0">
               <span class="text-slate-300 font-medium">Конфигурировать Wi-Fi</span>
             </label>
+              <button onclick="copySection('init_wifi', 'Wi-Fi сеть')" type="button" title="Скопировать только команды этого раздела" class="copy-section-btn text-[11px] text-slate-400 hover:text-cyan-300 bg-slate-900/80 hover:bg-slate-800 px-2 py-0.5 rounded border border-slate-700/60 transition flex items-center gap-1 shrink-0">
+  <svg class="w-3 h-3 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+  <span>Скопировать блок</span>
+</button>
+            </div>
           </div>
 
           <div id="init_wifi_fields" class="space-y-4">
@@ -355,7 +396,13 @@
             <h2 class="text-sm font-bold text-white flex items-center gap-2">
               <span class="w-2 h-2 rounded-full bg-cyan-400"></span> 4. Подключение к интернету (WAN Uplink)
             </h2>
-            <span class="text-[11px] px-2 py-0.5 rounded bg-blue-950 text-blue-400 border border-blue-800">Internet Gate</span>
+            <div class="flex items-center gap-2">
+              <span class="text-[11px] px-2 py-0.5 rounded bg-blue-950 text-blue-400 border border-blue-800">Internet Gate</span>
+              <button onclick="copySection('init_wan', 'WAN подключение')" type="button" title="Скопировать только команды этого раздела" class="copy-section-btn text-[11px] text-slate-400 hover:text-cyan-300 bg-slate-900/80 hover:bg-slate-800 px-2 py-0.5 rounded border border-slate-700/60 transition flex items-center gap-1 shrink-0">
+  <svg class="w-3 h-3 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+  <span>Скопировать блок</span>
+</button>
+            </div>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -433,7 +480,13 @@
             <h2 class="text-sm font-bold text-white flex items-center gap-2">
               <span class="w-2 h-2 rounded-full bg-cyan-400"></span> 5. Рекомендации вендора и Best Practices
             </h2>
-            <span class="text-[11px] px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800">Hardening</span>
+            <div class="flex items-center gap-2">
+              <span class="text-[11px] px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800">Hardening</span>
+              <button onclick="copySection('init_bp', 'Best Practices вендора')" type="button" title="Скопировать только команды этого раздела" class="copy-section-btn text-[11px] text-slate-400 hover:text-cyan-300 bg-slate-900/80 hover:bg-slate-800 px-2 py-0.5 rounded border border-slate-700/60 transition flex items-center gap-1 shrink-0">
+  <svg class="w-3 h-3 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+  <span>Скопировать блок</span>
+</button>
+            </div>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
@@ -491,9 +544,15 @@
 
         <!-- Section 1: Интерфейсные списки -->
         <div class="bg-[#131c2e] border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
-          <h2 class="text-sm font-bold text-white flex items-center gap-2">
+          <div class="flex items-center justify-between">
+            <h2 class="text-sm font-bold text-white flex items-center gap-2">
             <span class="w-2 h-2 rounded-full bg-cyan-400"></span> 1. Интерфейсные списки и зоны доверия
           </h2>
+            <button onclick="copySection('fw_lists', 'Interface Lists & Address Lists')" type="button" title="Скопировать только команды этого раздела" class="copy-section-btn text-[11px] text-slate-400 hover:text-cyan-300 bg-slate-900/80 hover:bg-slate-800 px-2 py-0.5 rounded border border-slate-700/60 transition flex items-center gap-1 shrink-0">
+  <svg class="w-3 h-3 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+  <span>Скопировать блок</span>
+</button>
+          </div>
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label class="block text-xs font-medium text-slate-400 mb-1">Интерфейсы WAN (ISP)</label>
@@ -524,7 +583,13 @@
             <h2 class="text-sm font-bold text-white flex items-center gap-2">
               <span class="w-2 h-2 rounded-full bg-cyan-400"></span> 2. RAW Таблица (Защита до conntrack)
             </h2>
-            <span class="text-[11px] px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800">Рекомендовано</span>
+            <div class="flex items-center gap-2">
+              <span class="text-[11px] px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800">Рекомендовано</span>
+              <button onclick="copySection('fw_raw', 'RAW Таблица')" type="button" title="Скопировать только команды этого раздела" class="copy-section-btn text-[11px] text-slate-400 hover:text-cyan-300 bg-slate-900/80 hover:bg-slate-800 px-2 py-0.5 rounded border border-slate-700/60 transition flex items-center gap-1 shrink-0">
+  <svg class="w-3 h-3 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+  <span>Скопировать блок</span>
+</button>
+            </div>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
             <label class="flex items-start gap-2.5 p-3 rounded-lg bg-slate-900/60 border border-slate-800/80 cursor-pointer hover:border-slate-700">
@@ -546,9 +611,15 @@
 
         <!-- Section 3: Входящий трафик (Input Chain) -->
         <div class="bg-[#131c2e] border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
-          <h2 class="text-sm font-bold text-white flex items-center gap-2">
+          <div class="flex items-center justify-between">
+            <h2 class="text-sm font-bold text-white flex items-center gap-2">
             <span class="w-2 h-2 rounded-full bg-cyan-400"></span> 3. Разрешенные службы из интернета (ISP-Input-Allow)
           </h2>
+            <button onclick="copySection('fw_input', 'ISP-Input-Allow & Input')" type="button" title="Скопировать только команды этого раздела" class="copy-section-btn text-[11px] text-slate-400 hover:text-cyan-300 bg-slate-900/80 hover:bg-slate-800 px-2 py-0.5 rounded border border-slate-700/60 transition flex items-center gap-1 shrink-0">
+  <svg class="w-3 h-3 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+  <span>Скопировать блок</span>
+</button>
+          </div>
           <div class="space-y-3">
             <div class="flex items-center justify-between p-3 rounded-lg bg-slate-900/60 border border-slate-800/80">
               <div>
@@ -585,9 +656,15 @@
 
         <!-- Section 4: Транзитный трафик (Forward Chain) и NAT -->
         <div class="bg-[#131c2e] border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
-          <h2 class="text-sm font-bold text-white flex items-center gap-2">
+          <div class="flex items-center justify-between">
+            <h2 class="text-sm font-bold text-white flex items-center gap-2">
             <span class="w-2 h-2 rounded-full bg-cyan-400"></span> 4. Forwarding (Транзит) и NAT
           </h2>
+            <button onclick="copySection('fw_forward_nat', 'Forwarding & NAT')" type="button" title="Скопировать только команды этого раздела" class="copy-section-btn text-[11px] text-slate-400 hover:text-cyan-300 bg-slate-900/80 hover:bg-slate-800 px-2 py-0.5 rounded border border-slate-700/60 transition flex items-center gap-1 shrink-0">
+  <svg class="w-3 h-3 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+  <span>Скопировать блок</span>
+</button>
+          </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
             <label class="flex items-start gap-2.5 p-3 rounded-lg bg-slate-900/60 border border-slate-800/80 cursor-pointer">
               <input type="checkbox" id="fw_fasttrack" checked onchange="updateScript()" class="mt-0.5 rounded text-cyan-500 focus:ring-0">
@@ -649,9 +726,15 @@
             <h2 class="text-sm font-bold text-white flex items-center gap-2">
               <span class="w-2 h-2 rounded-full bg-cyan-400"></span> 1. Параметры WireGuard Сервера (Центральный роутер)
             </h2>
-            <button onclick="regenRouterKeys()" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-cyan-300 px-2.5 py-1 rounded border border-slate-700 transition">
+            <div class="flex items-center gap-2">
+              <button onclick="regenRouterKeys()" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-cyan-300 px-2.5 py-1 rounded border border-slate-700 transition">
               🎲 Сгенерировать ключи
             </button>
+              <button onclick="copySection('wg_server', 'WireGuard Сервер')" type="button" title="Скопировать только команды этого раздела" class="copy-section-btn text-[11px] text-slate-400 hover:text-cyan-300 bg-slate-900/80 hover:bg-slate-800 px-2 py-0.5 rounded border border-slate-700/60 transition flex items-center gap-1 shrink-0">
+  <svg class="w-3 h-3 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+  <span>Скопировать блок</span>
+</button>
+            </div>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -705,9 +788,15 @@
 
         <!-- Advanced Network Options -->
         <div class="bg-[#131c2e] border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
-          <h2 class="text-sm font-bold text-white flex items-center gap-2">
+          <div class="flex items-center justify-between">
+            <h2 class="text-sm font-bold text-white flex items-center gap-2">
             <span class="w-2 h-2 rounded-full bg-cyan-400"></span> 2. Оптимизация сети и фаервола для WireGuard
           </h2>
+            <button onclick="copySection('wg_optim', 'WireGuard Оптимизация & MSS')" type="button" title="Скопировать только команды этого раздела" class="copy-section-btn text-[11px] text-slate-400 hover:text-cyan-300 bg-slate-900/80 hover:bg-slate-800 px-2 py-0.5 rounded border border-slate-700/60 transition flex items-center gap-1 shrink-0">
+  <svg class="w-3 h-3 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+  <span>Скопировать блок</span>
+</button>
+          </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
             <label class="flex items-start gap-2.5 p-3 rounded-lg bg-slate-900/60 border border-slate-800/80 cursor-pointer">
               <input type="checkbox" id="wg_mss_clamping" checked onchange="updateScript()" class="mt-0.5 rounded text-cyan-500 focus:ring-0">
@@ -730,9 +819,15 @@
         <div class="bg-[#131c2e] border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h2 class="text-sm font-bold text-white flex items-center gap-2">
+              <div class="flex items-center justify-between">
+            <h2 class="text-sm font-bold text-white flex items-center gap-2">
                 <span class="w-2 h-2 rounded-full bg-emerald-400"></span> 3. Настройка 1: Клиентский доступ (RoadWarrior)
               </h2>
+            <button onclick="copySection('wg_peers', 'WireGuard Клиенты')" type="button" title="Скопировать только команды этого раздела" class="copy-section-btn text-[11px] text-slate-400 hover:text-cyan-300 bg-slate-900/80 hover:bg-slate-800 px-2 py-0.5 rounded border border-slate-700/60 transition flex items-center gap-1 shrink-0">
+  <svg class="w-3 h-3 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+  <span>Скопировать блок</span>
+</button>
+          </div>
               <p class="text-[11px] text-slate-400 mt-0.5">Для удаленных сотрудников (ПК, смартфоны) и клиентских роутеров MikroTik (с генерацией .conf и RouterOS .rsc)</p>
             </div>
             <button onclick="addClient()" class="text-xs bg-emerald-700 hover:bg-emerald-600 text-white font-medium px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 self-start sm:self-auto">
@@ -749,9 +844,15 @@
         <div class="bg-[#131c2e] border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h2 class="text-sm font-bold text-white flex items-center gap-2">
+              <div class="flex items-center justify-between">
+            <h2 class="text-sm font-bold text-white flex items-center gap-2">
                 <span class="w-2 h-2 rounded-full bg-blue-400"></span> 4. Настройка 2: Объединение сетей Site-to-Site (Филиалы MikroTik)
               </h2>
+            <button onclick="copySection('wg_s2s', 'WireGuard Site-to-Site')" type="button" title="Скопировать только команды этого раздела" class="copy-section-btn text-[11px] text-slate-400 hover:text-cyan-300 bg-slate-900/80 hover:bg-slate-800 px-2 py-0.5 rounded border border-slate-700/60 transition flex items-center gap-1 shrink-0">
+  <svg class="w-3 h-3 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+  <span>Скопировать блок</span>
+</button>
+          </div>
               <p class="text-[11px] text-slate-400 mt-0.5">Объединение локальных сетей между роутерами (LAN-to-LAN маршрутизация и экспорт полного .rsc скрипта для филиала)</p>
             </div>
             <button onclick="addSite()" class="text-xs bg-blue-700 hover:bg-blue-600 text-white font-medium px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 self-start sm:self-auto">
@@ -791,10 +892,16 @@
             <h2 class="text-sm font-bold text-white flex items-center gap-2">
               <span class="w-2 h-2 rounded-full bg-cyan-400"></span> 1. Параметры Telegram-бота
             </h2>
-            <label class="flex items-center gap-2 cursor-pointer text-xs">
+            <div class="flex items-center gap-2">
+              <label class="flex items-center gap-2 cursor-pointer text-xs">
               <input type="checkbox" id="tg_enabled" checked onchange="updateScript()" class="rounded text-cyan-500 focus:ring-0">
               <span class="font-semibold text-slate-300">Включить модуль</span>
             </label>
+              <button onclick="copySection('tg_bot', 'Telegram Бот')" type="button" title="Скопировать только команды этого раздела" class="copy-section-btn text-[11px] text-slate-400 hover:text-cyan-300 bg-slate-900/80 hover:bg-slate-800 px-2 py-0.5 rounded border border-slate-700/60 transition flex items-center gap-1 shrink-0">
+  <svg class="w-3 h-3 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+  <span>Скопировать блок</span>
+</button>
+            </div>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -829,9 +936,15 @@
 
         <!-- Event Triggers Selection -->
         <div class="bg-[#131c2e] border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
-          <h2 class="text-sm font-bold text-white flex items-center gap-2">
+          <div class="flex items-center justify-between">
+            <h2 class="text-sm font-bold text-white flex items-center gap-2">
             <span class="w-2 h-2 rounded-full bg-cyan-400"></span> 2. Триггеры событий (Event Triggers)
           </h2>
+            <button onclick="copySection('tg_events', 'Telegram Триггеры')" type="button" title="Скопировать только команды этого раздела" class="copy-section-btn text-[11px] text-slate-400 hover:text-cyan-300 bg-slate-900/80 hover:bg-slate-800 px-2 py-0.5 rounded border border-slate-700/60 transition flex items-center gap-1 shrink-0">
+  <svg class="w-3 h-3 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+  <span>Скопировать блок</span>
+</button>
+          </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
             <!-- Event 1: Startup / Reboot -->
@@ -914,10 +1027,16 @@
             <h2 class="text-sm font-bold text-white flex items-center gap-2">
               <span class="w-2 h-2 rounded-full bg-cyan-400"></span> 1. Каскадная защита от подбора паролей (Brute-Force)
             </h2>
-            <label class="flex items-center gap-2 cursor-pointer text-xs">
+            <div class="flex items-center gap-2">
+              <label class="flex items-center gap-2 cursor-pointer text-xs">
               <input type="checkbox" id="def_bf_enabled" checked onchange="updateScript()" class="rounded text-cyan-500 focus:ring-0">
               <span class="font-semibold text-slate-300">Включить защиту</span>
             </label>
+              <button onclick="copySection('def_bf', 'Каскадный Brute-Force')" type="button" title="Скопировать только команды этого раздела" class="copy-section-btn text-[11px] text-slate-400 hover:text-cyan-300 bg-slate-900/80 hover:bg-slate-800 px-2 py-0.5 rounded border border-slate-700/60 transition flex items-center gap-1 shrink-0">
+  <svg class="w-3 h-3 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+  <span>Скопировать блок</span>
+</button>
+            </div>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -952,10 +1071,16 @@
             <h2 class="text-sm font-bold text-white flex items-center gap-2">
               <span class="w-2 h-2 rounded-full bg-cyan-400"></span> 2. Детекция сканирования портов (Port Scan Detection - PSD)
             </h2>
-            <label class="flex items-center gap-2 cursor-pointer text-xs">
+            <div class="flex items-center gap-2">
+              <label class="flex items-center gap-2 cursor-pointer text-xs">
               <input type="checkbox" id="def_psd_enabled" checked onchange="updateScript()" class="rounded text-cyan-500 focus:ring-0">
               <span class="font-semibold text-slate-300">Включить PSD</span>
             </label>
+              <button onclick="copySection('def_psd', 'PSD Детекция')" type="button" title="Скопировать только команды этого раздела" class="copy-section-btn text-[11px] text-slate-400 hover:text-cyan-300 bg-slate-900/80 hover:bg-slate-800 px-2 py-0.5 rounded border border-slate-700/60 transition flex items-center gap-1 shrink-0">
+  <svg class="w-3 h-3 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+  <span>Скопировать блок</span>
+</button>
+            </div>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -979,9 +1104,15 @@
         <div class="bg-[#131c2e] border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
           <div class="flex items-center justify-between">
             <div>
-              <h2 class="text-sm font-bold text-white flex items-center gap-2">
+              <div class="flex items-center justify-between">
+            <h2 class="text-sm font-bold text-white flex items-center gap-2">
                 <span class="w-2 h-2 rounded-full bg-cyan-400"></span> 3. Порты-ловушки (Port Honeypots)
               </h2>
+            <button onclick="copySection('def_hp', 'Honeypots Ловушки')" type="button" title="Скопировать только команды этого раздела" class="copy-section-btn text-[11px] text-slate-400 hover:text-cyan-300 bg-slate-900/80 hover:bg-slate-800 px-2 py-0.5 rounded border border-slate-700/60 transition flex items-center gap-1 shrink-0">
+  <svg class="w-3 h-3 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+  <span>Скопировать блок</span>
+</button>
+          </div>
               <p class="text-xs text-slate-400 mt-1">Заведомо неиспользуемые порты. Любое обращение к ним расценивается как автоматическое сканирование.</p>
             </div>
             <label class="flex items-center gap-2 cursor-pointer text-xs">
@@ -1009,9 +1140,15 @@
 
         <!-- Section 4: Точки перехвата (Jump Rules) -->
         <div class="bg-[#131c2e] border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
-          <h2 class="text-sm font-bold text-white flex items-center gap-2">
+          <div class="flex items-center justify-between">
+            <h2 class="text-sm font-bold text-white flex items-center gap-2">
             <span class="w-2 h-2 rounded-full bg-cyan-400"></span> 4. Точки перехвата трафика (Правила Jump)
           </h2>
+            <button onclick="copySection('def_jump', 'Jump Правила')" type="button" title="Скопировать только команды этого раздела" class="copy-section-btn text-[11px] text-slate-400 hover:text-cyan-300 bg-slate-900/80 hover:bg-slate-800 px-2 py-0.5 rounded border border-slate-700/60 transition flex items-center gap-1 shrink-0">
+  <svg class="w-3 h-3 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+  <span>Скопировать блок</span>
+</button>
+          </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
             <label class="flex items-start gap-2.5 p-3 rounded-lg bg-slate-900/60 border border-slate-800/80 cursor-pointer">
               <input type="checkbox" id="def_jump_input" checked onchange="updateScript()" class="mt-0.5 rounded text-cyan-500 focus:ring-0">
@@ -1032,9 +1169,15 @@
 
         <!-- Section 5: Логирование атак -->
         <div class="bg-[#131c2e] border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
-          <h2 class="text-sm font-bold text-white flex items-center gap-2">
+          <div class="flex items-center justify-between">
+            <h2 class="text-sm font-bold text-white flex items-center gap-2">
             <span class="w-2 h-2 rounded-full bg-cyan-400"></span> 5. Интеграция с мониторингом и Telegram
           </h2>
+            <button onclick="copySection('def_tg', 'Defense Telegram Alerts')" type="button" title="Скопировать только команды этого раздела" class="copy-section-btn text-[11px] text-slate-400 hover:text-cyan-300 bg-slate-900/80 hover:bg-slate-800 px-2 py-0.5 rounded border border-slate-700/60 transition flex items-center gap-1 shrink-0">
+  <svg class="w-3 h-3 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+  <span>Скопировать блок</span>
+</button>
+          </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
             <label class="flex items-start gap-2.5 p-3 rounded-lg bg-slate-900/60 border border-slate-800/80 cursor-pointer">
               <input type="checkbox" id="def_log_enabled" checked onchange="updateScript()" class="mt-0.5 rounded text-cyan-500 focus:ring-0">
@@ -1076,9 +1219,15 @@
 
         <!-- Section 1: L2 Security & MNDP -->
         <div class="bg-[#131c2e] border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
-          <h2 class="text-sm font-bold text-white flex items-center gap-2">
+          <div class="flex items-center justify-between">
+            <h2 class="text-sm font-bold text-white flex items-center gap-2">
             <span class="w-2 h-2 rounded-full bg-cyan-400"></span> 1. Безопасность L2 и протокола обнаружения (MNDP / LLDP)
           </h2>
+            <button onclick="copySection('sys_mndp', 'Neighbor Discovery')" type="button" title="Скопировать только команды этого раздела" class="copy-section-btn text-[11px] text-slate-400 hover:text-cyan-300 bg-slate-900/80 hover:bg-slate-800 px-2 py-0.5 rounded border border-slate-700/60 transition flex items-center gap-1 shrink-0">
+  <svg class="w-3 h-3 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+  <span>Скопировать блок</span>
+</button>
+          </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
             <label class="flex items-start gap-2.5 p-3 rounded-lg bg-slate-900/60 border border-slate-800/80 cursor-pointer">
               <input type="checkbox" id="sys_mndp_hide" checked onchange="updateScript()" class="mt-0.5 rounded text-cyan-500 focus:ring-0">
@@ -1099,9 +1248,15 @@
 
         <!-- Section 2: IP Services Hardening -->
         <div class="bg-[#131c2e] border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
-          <h2 class="text-sm font-bold text-white flex items-center gap-2">
+          <div class="flex items-center justify-between">
+            <h2 class="text-sm font-bold text-white flex items-center gap-2">
             <span class="w-2 h-2 rounded-full bg-cyan-400"></span> 2. Системные службы (/ip service)
           </h2>
+            <button onclick="copySection('sys_services', 'Системные службы')" type="button" title="Скопировать только команды этого раздела" class="copy-section-btn text-[11px] text-slate-400 hover:text-cyan-300 bg-slate-900/80 hover:bg-slate-800 px-2 py-0.5 rounded border border-slate-700/60 transition flex items-center gap-1 shrink-0">
+  <svg class="w-3 h-3 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+  <span>Скопировать блок</span>
+</button>
+          </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
             <label class="flex items-start gap-2.5 p-3 rounded-lg bg-slate-900/60 border border-slate-800/80 cursor-pointer">
               <input type="checkbox" id="sys_disable_insecure" checked onchange="updateScript()" class="mt-0.5 rounded text-cyan-500 focus:ring-0">
@@ -1126,10 +1281,16 @@
             <h2 class="text-sm font-bold text-white flex items-center gap-2">
               <span class="w-2 h-2 rounded-full bg-cyan-400"></span> 3. Синхронизация точного времени (NTP)
             </h2>
-            <label class="flex items-center gap-2 cursor-pointer text-xs">
+            <div class="flex items-center gap-2">
+              <label class="flex items-center gap-2 cursor-pointer text-xs">
               <input type="checkbox" id="sys_ntp_enabled" checked onchange="updateScript()" class="rounded text-cyan-500 focus:ring-0">
               <span class="font-semibold text-slate-300">Включить NTP</span>
             </label>
+              <button onclick="copySection('sys_sntp', 'NTP Синхронизация')" type="button" title="Скопировать только команды этого раздела" class="copy-section-btn text-[11px] text-slate-400 hover:text-cyan-300 bg-slate-900/80 hover:bg-slate-800 px-2 py-0.5 rounded border border-slate-700/60 transition flex items-center gap-1 shrink-0">
+  <svg class="w-3 h-3 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+  <span>Скопировать блок</span>
+</button>
+            </div>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
@@ -1151,10 +1312,16 @@
             <h2 class="text-sm font-bold text-white flex items-center gap-2">
               <span class="w-2 h-2 rounded-full bg-cyan-400"></span> 4. Защищенный DNS over HTTPS (DoH)
             </h2>
-            <label class="flex items-center gap-2 cursor-pointer text-xs">
+            <div class="flex items-center gap-2">
+              <label class="flex items-center gap-2 cursor-pointer text-xs">
               <input type="checkbox" id="sys_doh_enabled" checked onchange="updateScript()" class="rounded text-cyan-500 focus:ring-0">
               <span class="font-semibold text-slate-300">Включить DoH</span>
             </label>
+              <button onclick="copySection('sys_doh', 'DNS over HTTPS (DoH)')" type="button" title="Скопировать только команды этого раздела" class="copy-section-btn text-[11px] text-slate-400 hover:text-cyan-300 bg-slate-900/80 hover:bg-slate-800 px-2 py-0.5 rounded border border-slate-700/60 transition flex items-center gap-1 shrink-0">
+  <svg class="w-3 h-3 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+  <span>Скопировать блок</span>
+</button>
+            </div>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1192,34 +1359,83 @@
     </div>
 
     <!-- Right Output Panel (5 Cols) -->
-    <div class="lg:col-span-5 flex flex-col space-y-3">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span class="text-xs font-bold text-slate-200 uppercase tracking-wider">Генератор .rsc (RouterOS v7)</span>
+    <div class="lg:col-span-5 flex flex-col space-y-3 lg:sticky lg:top-20 lg:h-[calc(100vh-6rem)]">
+      
+      <!-- Top header bar with status, search and controls -->
+      <div class="bg-[#131c2e] border border-slate-800 rounded-xl px-4 py-2.5 flex flex-col gap-2 shrink-0 shadow-sm">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span class="text-xs font-bold text-slate-200 uppercase tracking-wider">Генератор .rsc</span>
+            <span class="text-[10px] px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800 font-mono">ROS v7</span>
+          </div>
+          <div id="stats-badge" class="text-[11px] text-slate-400 font-mono">
+            0 строк
+          </div>
         </div>
-        <div id="stats-badge" class="text-[11px] text-slate-400 font-mono">
-          0 строк
+        
+        <!-- Search and Code View controls -->
+        <div class="flex items-center justify-between gap-2 pt-1.5 border-t border-slate-800/80">
+          <div class="relative flex-1">
+            <input type="text" id="codeSearchInput" placeholder="Поиск в коде..." 
+              class="w-full bg-slate-900 border border-slate-800 focus:border-cyan-500 rounded px-2.5 py-1 text-[11px] text-slate-200 placeholder-slate-500 outline-none pr-6 font-mono transition"
+              oninput="searchInCode(this.value)"
+              onkeydown="handleSearchKey(event)">
+            <button onclick="clearCodeSearch()" id="clearSearchBtn" class="hidden absolute right-2 top-1.5 text-slate-500 hover:text-slate-300 text-xs">✕</button>
+          </div>
+          
+          <div class="flex items-center gap-1 shrink-0">
+            <!-- Line wrap toggle -->
+            <button onclick="toggleLineWrap()" id="wrapToggleBtn" title="Перенос длинных строк" class="text-[10px] px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 rounded border border-slate-700 transition">
+              Wrap
+            </button>
+            <!-- Font size -->
+            <button onclick="adjustCodeFontSize(-1)" title="Уменьшить шрифт" class="text-[10px] px-1.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 rounded border border-slate-700 transition">A-</button>
+            <button onclick="adjustCodeFontSize(1)" title="Увеличить шрифт" class="text-[10px] px-1.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 rounded border border-slate-700 transition">A+</button>
+            <!-- Quick copy -->
+            <button onclick="copyScript()" title="Скопировать весь скрипт" class="text-[10px] px-2.5 py-1 bg-cyan-600 hover:bg-cyan-500 text-white font-medium rounded transition flex items-center gap-1 shadow-sm">
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+              <span>Копировать</span>
+            </button>
+          </div>
         </div>
       </div>
 
-      <!-- Code Box -->
-      <div class="relative flex-1 bg-[#090d16] border border-slate-800 rounded-xl p-4 flex flex-col min-h-[500px]">
-        <pre id="outputCode" class="flex-1 text-[12px] text-cyan-300 font-mono overflow-auto custom-scroll leading-relaxed select-all whitespace-pre"></pre>
+      <!-- Code Box with line numbers & syntax highlighting -->
+      <div class="relative flex-1 bg-[#090d16] border border-slate-800 rounded-xl overflow-hidden flex flex-col min-h-[350px]">
         
-        <!-- Toast message -->
-        <div id="toast" class="absolute bottom-4 right-4 bg-emerald-600 text-white text-xs px-3 py-1.5 rounded-lg shadow-lg opacity-0 transition-opacity pointer-events-none">
-          Скопировано в буфер обмена!
+        <!-- Search results indicator bar -->
+        <div id="searchStatsBar" class="hidden px-3 py-1 bg-slate-800/90 border-b border-slate-700 text-[11px] text-cyan-300 flex items-center justify-between shrink-0">
+          <span id="searchMatchCount">Найдено совпадений: 0</span>
+          <div class="flex items-center gap-2">
+            <button onclick="jumpSearchMatch(-1)" class="hover:text-white text-xs">▲ Пред</button>
+            <button onclick="jumpSearchMatch(1)" class="hover:text-white text-xs">▼ След</button>
+          </div>
+        </div>
+
+        <!-- Scrollable Code View -->
+        <div id="codeScrollContainer" class="flex-1 overflow-auto custom-scroll flex font-mono text-[11.5px] leading-[1.6]">
+          <!-- Gutter for line numbers -->
+          <div id="lineNumbersGutter" class="sticky left-0 select-none bg-[#070a12] text-slate-600 border-r border-slate-800/80 px-2 py-3 text-right font-mono min-w-[2.8rem] z-10 shrink-0"></div>
+          <!-- Code content with syntax highlighting -->
+          <pre id="outputCode" class="flex-1 p-3 text-slate-300 font-mono whitespace-pre outline-none select-text"></pre>
+        </div>
+        
+        <!-- Floating Toast message -->
+        <div id="toast" class="absolute bottom-4 right-4 bg-emerald-600 text-white text-xs px-3.5 py-2 rounded-lg shadow-xl shadow-emerald-950/50 opacity-0 translate-y-2 transition-all duration-300 pointer-events-none flex items-center gap-2 z-20">
+          <svg class="w-4 h-4 text-emerald-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+          <span id="toastText">Скопировано в буфер обмена!</span>
         </div>
       </div>
 
       <!-- Safe Mode Banner -->
-      <div class="bg-amber-950/40 border border-amber-800/60 rounded-xl p-3 flex items-start gap-2.5 text-xs text-amber-300">
+      <div class="bg-amber-950/40 border border-amber-800/60 rounded-xl p-3 flex items-start gap-2.5 text-xs text-amber-300 shrink-0">
         <span class="text-base">⚠️</span>
         <div>
           <strong>Рекомендация архитектора:</strong> При первом применении файрвола на удаленном роутере всегда активируйте кнопку <span class="underline font-semibold">Safe Mode</span> в Winbox (или Ctrl+X в терминале).
         </div>
       </div>
+    </div>
     </div>
 
   </main>
@@ -2064,9 +2280,9 @@
       if (activeCount === 0) {
         rsc.push(`# [NOTICE] No modules selected for configuration.`);
         rsc.push(`# Please check at least one module in the top bar above.`);
+        window.lastActiveCount = 0;
         const finalScript = rsc.join('\n');
-        document.getElementById('outputCode').textContent = finalScript;
-        document.getElementById('stats-badge').textContent = `0 строк (0 из 6 модулей)`;
+        renderCodeView(finalScript, 0, '');
         return;
       }
 
@@ -2076,6 +2292,7 @@
       if (modInit) {
         rsc.push(`# =====================================================================`);
         rsc.push(`# 0. MODULE: INITIAL SETUP & BASELINE CONFIGURATION (Day-0 Setup)`);
+        setSec("init_lan");
         rsc.push(`# =====================================================================`);
         rsc.push(`/system identity set name="${translit(initIdentity) || 'MikroTik'}"\n`);
 
@@ -2100,6 +2317,7 @@
         if (initDhcpEnabled) {
           const lanNet = getNetworkAddress(initLanIp);
           const lanGw = initLanIp.split('/')[0];
+          setSec("init_dhcp");
           rsc.push(`# --- DHCP Server & Pool ---`);
           rsc.push(`/ip pool`);
           rsc.push(`add name="${initBridgeName}-pool" ranges=${initDhcpPool} comment="LAN DHCP IP Pool"`);
@@ -2110,6 +2328,7 @@
         }
 
         // WAN Uplink & MAC
+        setSec("init_wan");
         rsc.push(`# --- WAN Uplink & Interface Setup ---`);
         if (initWanMacClone && initWanMacVal) {
           rsc.push(`/interface ethernet set [find name="${initWanIface}" or default-name="${initWanIface}"] mac-address="${initWanMacVal}" comment="Cloned WAN MAC address"`);
@@ -2154,7 +2373,8 @@
 
           rsc.push(`# =====================================================================`);
           if (initWifiPackage === 'classic') {
-            rsc.push(`# --- Wi-Fi: Classic Wireless (/interface wireless - n/ac) ---`);
+            setSec("init_wifi");
+          rsc.push(`# --- Wi-Fi: Classic Wireless (/interface wireless - n/ac) ---`);
             rsc.push(`/interface wireless security-profiles`);
             rsc.push(`:if ([:len [find name="sec-${ssidClean}"]] = 0) do={`);
             rsc.push(`  add name="sec-${ssidClean}" mode=dynamic-keys authentication-types=wpa2-psk wpa2-pre-shared-key="${initWifiPass}" supplicant-identity="MikroTik"`);
@@ -2219,7 +2439,8 @@
 
         // Vendor Hardening & Best Practices
         if (initBpMacServer || initBpDisableServices || initBpNtp || initBpDnsCache) {
-          rsc.push(`# --- Vendor Hardening & Security Best Practices ---`);
+          setSec("init_bp");
+        rsc.push(`# --- Vendor Hardening & Security Best Practices ---`);
           if (initBpMacServer) {
             const effectiveWanIface = initWanProto === 'pppoe' ? initWanPppoeName : initWanIface;
             rsc.push(`/interface list`);
@@ -2259,6 +2480,7 @@
       if (modWireguard) {
         rsc.push(`# =====================================================================`);
         rsc.push(`# 1. MODULE: WIREGUARD SERVER (Clients & Site-to-Site)`);
+        setSec("wg_server");
         rsc.push(`# =====================================================================`);
         rsc.push(`/interface wireguard`);
         let wgAddCmd = `add name="${wgIface}" listen-port=${wgPort} mtu=${wgMtu}`;
@@ -2277,7 +2499,8 @@
 
           // 1. RoadWarrior & MikroTik Clients
           if (wgClients.length > 0) {
-            rsc.push(`# --- Client Peers (Mobile, PC & Client MikroTik) ---`);
+            setSec("wg_peers");
+        rsc.push(`# --- Client Peers (Mobile, PC & Client MikroTik) ---`);
             wgClients.forEach(c => {
               const tag = c.clientType === 'mikrotik' ? 'MikroTik Client' : 'Client';
               rsc.push(`add interface="${wgIface}" public-key="${c.pubKey}" allowed-address=${c.tunIp}/32 persistent-keepalive=${c.keepalive || '25s'} comment="${translit(c.name)} [${tag}]"`);
@@ -2287,7 +2510,8 @@
 
           // 2. Site-to-Site Branches
           if (wgSites.length > 0) {
-            rsc.push(`# --- Site-to-Site Branch Peers (LAN-to-LAN) ---`);
+            setSec("wg_s2s");
+        rsc.push(`# --- Site-to-Site Branch Peers (LAN-to-LAN) ---`);
             wgSites.forEach(s => {
               let allowed = [`${s.tunIp}/32`];
               if (s.remoteLan) allowed.push(s.remoteLan);
@@ -2314,6 +2538,7 @@
         }
 
         if (wgMssClamping) {
+          setSec("wg_optim");
           rsc.push(`# WireGuard MSS Clamping (PMTU Fix)`);
           rsc.push(`/ip firewall mangle`);
           rsc.push(`add chain=forward protocol=tcp tcp-flags=syn tcp-mss=1381-65535 action=change-mss new-mss=1380 passthrough=yes comment="WireGuard MSS Clamping (PMTU)"\n`);
@@ -2332,6 +2557,7 @@
       if (modFirewall) {
         rsc.push(`# =====================================================================`);
         rsc.push(`# 2. MODULE: INTERFACE LISTS & ZONES (ISP, Local, Management, WG)`);
+        setSec("fw_lists");
         rsc.push(`# =====================================================================`);
         rsc.push(`/interface list`);
         rsc.push(`add name=ISP comment="WAN Uplinks"`);
@@ -2361,7 +2587,8 @@
         // RAW
         if (rawTcpFlags || rawBlacklist) {
           rsc.push(`# =====================================================================`);
-          rsc.push(`# 3. RAW FIREWALL (Prerouting drops before Connection Tracker)`);
+          setSec("fw_raw");
+        rsc.push(`# 3. RAW FIREWALL (Prerouting drops before Connection Tracker)`);
           rsc.push(`# =====================================================================`);
           rsc.push(`/ip firewall raw`);
           if (rawBlacklist) {
@@ -2378,6 +2605,7 @@
 
         // Filter
         rsc.push(`# =====================================================================`);
+        setSec("fw_input");
         rsc.push(`# 4. FILTER FIREWALL (Default-Drop & Custom Chains)`);
         rsc.push(`# =====================================================================`);
         rsc.push(`/ip firewall filter`);
@@ -2429,6 +2657,7 @@
         rsc.push(`add chain=Local-Input action=drop comment="DEFAULT DROP: Drop unauthorized access from LAN"\n`);
 
         // Forward chain
+        setSec("fw_forward_nat");
         rsc.push(`# --- Chain: forward (Transit Traffic) ---`);
         if (fastTrack) {
           rsc.push(`add chain=forward action=fasttrack-connection connection-state=established,related connection-mark=no-mark comment="FastTrack Engine (Skip marked connections)"`);
@@ -2488,6 +2717,7 @@
 
           rsc.push(`# =====================================================================`);
           rsc.push(`# 7. MODULE: TELEGRAM NOTIFICATIONS (TgSend Engine)`);
+        setSec("tg_bot");
           rsc.push(`# =====================================================================`);
           
           // TgSend System Script
@@ -2508,6 +2738,7 @@
     }
 } comment="Central Telegram Alert Function"\n`);
 
+          setSec("tg_events");
           // Startup Trigger
           if (tgEvtStartup) {
             rsc.push(`/system scheduler`);
@@ -2584,11 +2815,13 @@
 
         rsc.push(`# =====================================================================`);
         rsc.push(`# 8. MODULE 4: PORT SCAN & BRUTE-FORCE DEFENSE (Defense-Scans Chain)`);
+        setSec("def_bf");
         rsc.push(`# =====================================================================`);
         rsc.push(`/ip firewall filter`);
         
         // Standalone Jump Rules if Firewall module is not included
         if (!modFirewall) {
+          setSec("def_jump");
           rsc.push(`# [JUMP RULES] Connect Defense-Scans to your existing Input and Forward chains:`);
           rsc.push(`add chain=input action=jump jump-target=Defense-Scans comment="Jump to Defense-Scans chain"`);
           rsc.push(`add chain=forward connection-nat-state=dstnat action=jump jump-target=Defense-Scans comment="Jump to Defense-Scans for forwarded ports (DST-NAT)"`);
@@ -2599,6 +2832,7 @@
         // Drop already blacklisted hosts
         rsc.push(`add chain=Defense-Scans src-address-list=Blacklist action=drop comment="Drop already blacklisted hosts"`);
 
+        setSec("def_hp");
         // 1. Honeypots
         if (defHoneypotEnabled) {
           let logOpt = defLogEnabled ? ` log=yes log-prefix="[HONEYPOT-BAN]"` : ``;
@@ -2606,6 +2840,7 @@
           rsc.push(`add chain=Defense-Scans protocol=tcp dst-port=${defHoneypotPorts} action=drop comment="Drop Honeypot probe"`);
         }
 
+        setSec("def_psd");
         // 2. PSD
         if (defPsdEnabled) {
           let logOpt = defLogEnabled ? ` log=yes log-prefix="[PSD-BAN]"` : ``;
@@ -2613,6 +2848,7 @@
           rsc.push(`add chain=Defense-Scans protocol=tcp psd=${defPsdParams} action=drop comment="Drop Port scan"`);
         }
 
+        setSec("def_bf");
         // 3. Brute-force cascade (Reverse order of stages)
         if (defBfEnabled) {
           let logOpt = defLogEnabled ? ` log=yes log-prefix="[BRUTEFORCE-BAN]"` : ``;
@@ -2644,6 +2880,7 @@
         rsc.push(`# 9. MODULE 5: SYSTEM HARDENING (L2, MAC-Server, IP Services, NTP)`);
         rsc.push(`# =====================================================================`);
 
+        setSec("sys_mndp");
         if (sysMndpHide) {
           rsc.push(`# MNDP / CDP / LLDP discovery isolation (Hide router from ISP network)`);
           rsc.push(`/ip neighbor discovery-settings set discover-interface-list=Management\n`);
@@ -2656,6 +2893,7 @@
           rsc.push(`/tool mac-server ping set enabled=no\n`);
         }
 
+        setSec("sys_services");
         if (sysDisableInsecure || sysRestrictMgmt) {
           rsc.push(`# Hardening IP Services (/ip service)`);
           rsc.push(`/ip service`);
@@ -2674,6 +2912,7 @@
           rsc.push(``);
         }
 
+        setSec("sys_sntp");
         if (sysNtpEnabled) {
           rsc.push(`# Accurate time synchronization (NTP client) and timezone`);
           rsc.push(`/system clock set time-zone-name="${sysTimezone}"`);
@@ -2693,6 +2932,7 @@
         const sysDnsCache = document.getElementById('sys_dns_cache').value;
         const sysDnsRedirect = document.getElementById('sys_dns_redirect').checked;
 
+        setSec("sys_doh");
         if (sysDohEnabled) {
           rsc.push(`# =====================================================================`);
           rsc.push(`# 10. MODULE 5: SECURE DNS OVER HTTPS (DoH)`);
@@ -2731,9 +2971,17 @@
         }
       }
 
+      // Format all section scripts into clean plain text strings
+      for (const k in window.sectionScripts) {
+        if (Array.isArray(window.sectionScripts[k])) {
+          window.sectionScripts[k] = window.sectionScripts[k].filter(l => l !== undefined && l !== null).join('\n').trim();
+        }
+      }
+      window.lastActiveCount = activeCount;
       const finalScript = rsc.join('\n');
-      document.getElementById('outputCode').textContent = finalScript;
-      document.getElementById('stats-badge').textContent = `${rsc.length} строк (${activeCount} из 6 модулей)`;
+      const searchInput = document.getElementById('codeSearchInput');
+      const currentQuery = searchInput ? searchInput.value.trim() : '';
+      renderCodeView(finalScript, activeCount, currentQuery);
     }
 
     // Copy test command for CLI
@@ -2759,24 +3007,302 @@
       });
     }
 
-    // Copy to clipboard
-    function copyScript() {
-      const code = document.getElementById('outputCode').textContent;
+    // =========================================================
+    // RouterOS Syntax Highlighter & Code Box Controls (Suite)
+    // =========================================================
+    function highlightRouterOS(code) {
+      if (!code) return '';
+      const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const lines = code.split('\n');
+      const out = [];
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const trimmed = line.trim();
+        if (!trimmed) {
+          out.push('');
+          continue;
+        }
+        if (trimmed.startsWith('#')) {
+          out.push(`<span class="text-slate-500 italic">${esc(line)}</span>`);
+          continue;
+        }
+
+        const indentLen = line.length - line.trimStart().length;
+        const indent = line.substring(0, indentLen);
+        const rest = line.substring(indentLen);
+
+        if (rest.startsWith('/')) {
+          const verbMatch = rest.match(/\s+(set|add|remove|enable|disable|print|export|find|get)\b/);
+          if (verbMatch) {
+            const menuPart = rest.substring(0, verbMatch.index);
+            const cmdPart = rest.substring(verbMatch.index + 1);
+            out.push(`${indent}<span class="text-sky-400 font-bold">${esc(menuPart)}</span> ${formatCommand(cmdPart)}`);
+          } else {
+            out.push(`${indent}<span class="text-sky-400 font-bold">${esc(rest)}</span>`);
+          }
+        } else {
+          out.push(`${indent}${formatCommand(rest)}`);
+        }
+      }
+      return out.join('\n');
+    }
+
+    function formatCommand(text) {
+      const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const words = text.split(' ');
+      const res = [];
+      let i = 0;
+      while (i < words.length) {
+        const w = words[i];
+        if (i === 0 && /^(add|set|remove|print|export|enable|disable|find|get)$/.test(w)) {
+          res.push(`<span class="text-cyan-400 font-semibold">${w}</span>`);
+        } else if (w.includes('=')) {
+          const eqIdx = w.indexOf('=');
+          const key = w.substring(0, eqIdx);
+          let val = w.substring(eqIdx + 1);
+
+          if (val.startsWith('"') && !(val.endsWith('"') && val.length > 1 && !val.endsWith('\\"'))) {
+            const quoteVal = [val];
+            i++;
+            while (i < words.length) {
+              quoteVal.push(words[i]);
+              if (words[i].endsWith('"') && !words[i].endsWith('\\"')) break;
+              i++;
+            }
+            val = quoteVal.join(' ');
+          }
+
+          const kHtml = `<span class="text-indigo-300">${esc(key)}</span>`;
+          const vHtml = formatParamValue(key, val);
+          res.push(`${kHtml}=${vHtml}`);
+        } else if (w.startsWith('$')) {
+          res.push(`<span class="text-pink-400 font-semibold">${esc(w)}</span>`);
+        } else {
+          res.push(esc(w));
+        }
+        i++;
+      }
+      return res.join(' ');
+    }
+
+    function formatParamValue(key, val) {
+      const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const escV = esc(val);
+      if (key === 'action') {
+        if (val === 'accept' || val === 'passthrough') return `<span class="text-emerald-400 font-semibold">${escV}</span>`;
+        if (val === 'drop' || val === 'reject') return `<span class="text-rose-400 font-bold">${escV}</span>`;
+        if (val === 'fasttrack-connection') return `<span class="text-amber-400 font-bold">${escV}</span>`;
+        if (val === 'jump') return `<span class="text-purple-400 font-semibold">${escV}</span>`;
+        if (['masquerade', 'redirect', 'src-nat', 'dst-nat'].includes(val)) return `<span class="text-teal-300 font-semibold">${escV}</span>`;
+      }
+      if (val.startsWith('"') && val.endsWith('"')) {
+        return `<span class="text-emerald-300">${escV}</span>`;
+      }
+      if (val.startsWith('$')) {
+        return `<span class="text-pink-400 font-semibold">${escV}</span>`;
+      }
+      return `<span class="text-slate-200">${escV}</span>`;
+    }
+
+    function renderCodeView(scriptText, activeCount = 0, searchQuery = '') {
+      window.rawScript = scriptText || '';
+      const outputEl = document.getElementById('outputCode');
+      const gutterEl = document.getElementById('lineNumbersGutter');
+      const statsBadge = document.getElementById('stats-badge');
+      if (!outputEl || !gutterEl) return;
+
+      if (!scriptText) {
+        outputEl.innerHTML = '';
+        gutterEl.textContent = '';
+        if (statsBadge) statsBadge.textContent = '0 строк';
+        return;
+      }
+
+      const lines = scriptText.split('\n');
+      if (statsBadge) {
+        statsBadge.textContent = `${lines.length} строк (${activeCount} из 6 модулей)`;
+      }
+
+      let gutterText = '';
+      for (let i = 1; i <= lines.length; i++) {
+        gutterText += i + '\n';
+      }
+      gutterEl.textContent = gutterText;
+
+      let highlighted = highlightRouterOS(scriptText);
+
+      const searchStats = document.getElementById('searchStatsBar');
+      const matchCountSpan = document.getElementById('searchMatchCount');
+      if (searchQuery && searchQuery.trim().length > 0) {
+        const q = searchQuery.trim();
+        const escQuery = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(`(?![^<]*>)(${escQuery})`, 'gi');
+        let mCount = 0;
+        highlighted = highlighted.replace(regex, (m) => {
+          mCount++;
+          return `<mark class="search-match" data-match-idx="${mCount}">${m}</mark>`;
+        });
+        if (searchStats && matchCountSpan) {
+          searchStats.classList.remove('hidden');
+          matchCountSpan.textContent = `Найдено: ${mCount}`;
+        }
+      } else {
+        if (searchStats) searchStats.classList.add('hidden');
+      }
+
+      outputEl.innerHTML = highlighted;
+    }
+
+    // Search and navigation in code
+    let currentSearchMatchIdx = -1;
+    function searchInCode(query) {
+      const clearBtn = document.getElementById('clearSearchBtn');
+      if (!query || !query.trim()) {
+        if (clearBtn) clearBtn.classList.add('hidden');
+        currentSearchMatchIdx = -1;
+        renderCodeView(window.rawScript, window.lastActiveCount || 0, '');
+        return;
+      }
+      if (clearBtn) clearBtn.classList.remove('hidden');
+      currentSearchMatchIdx = -1;
+      renderCodeView(window.rawScript, window.lastActiveCount || 0, query);
+      jumpSearchMatch(1);
+    }
+
+    function clearCodeSearch() {
+      const input = document.getElementById('codeSearchInput');
+      if (input) input.value = '';
+      searchInCode('');
+    }
+
+    function handleSearchKey(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        jumpSearchMatch(e.shiftKey ? -1 : 1);
+      } else if (e.key === 'Escape') {
+        clearCodeSearch();
+      }
+    }
+
+    function jumpSearchMatch(dir) {
+      const matches = document.querySelectorAll('.search-match');
+      if (!matches || matches.length === 0) return;
+
+      if (currentSearchMatchIdx >= 0 && matches[currentSearchMatchIdx]) {
+        matches[currentSearchMatchIdx].classList.remove('current-match');
+      }
+
+      currentSearchMatchIdx += dir;
+      if (currentSearchMatchIdx >= matches.length) currentSearchMatchIdx = 0;
+      if (currentSearchMatchIdx < 0) currentSearchMatchIdx = matches.length - 1;
+
+      const target = matches[currentSearchMatchIdx];
+      target.classList.add('current-match');
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+      const matchCountSpan = document.getElementById('searchMatchCount');
+      if (matchCountSpan) {
+        matchCountSpan.textContent = `${currentSearchMatchIdx + 1} из ${matches.length}`;
+      }
+    }
+
+    // Font size and line wrap
+    let isLineWrap = false;
+    function toggleLineWrap() {
+      isLineWrap = !isLineWrap;
+      const btn = document.getElementById('wrapToggleBtn');
+      const code = document.getElementById('outputCode');
+      if (!btn || !code) return;
+      if (isLineWrap) {
+        btn.classList.add('bg-cyan-950', 'text-cyan-300', 'border-cyan-800');
+        btn.classList.remove('bg-slate-800', 'text-slate-400');
+        code.classList.remove('whitespace-pre');
+        code.classList.add('whitespace-pre-wrap', 'break-all');
+      } else {
+        btn.classList.remove('bg-cyan-950', 'text-cyan-300', 'border-cyan-800');
+        btn.classList.add('bg-slate-800', 'text-slate-400');
+        code.classList.remove('whitespace-pre-wrap', 'break-all');
+        code.classList.add('whitespace-pre');
+      }
+    }
+
+    let currentFontSize = 11.5;
+    function adjustCodeFontSize(delta) {
+      currentFontSize = Math.min(16, Math.max(9, currentFontSize + delta));
+      const container = document.getElementById('codeScrollContainer');
+      if (container) container.style.fontSize = `${currentFontSize}px`;
+    }
+
+    // Enhanced Toast
+    function showToast(msg = 'Скопировано в буфер обмена!') {
+      const toast = document.getElementById('toast');
+      const toastText = document.getElementById('toastText');
+      if (toastText) toastText.textContent = msg;
+      if (!toast) return;
+      toast.classList.remove('opacity-0', 'translate-y-2');
+      toast.classList.add('opacity-100', 'translate-y-0');
+      clearTimeout(window.toastTimer);
+      window.toastTimer = setTimeout(() => {
+        toast.classList.remove('opacity-100', 'translate-y-0');
+        toast.classList.add('opacity-0', 'translate-y-2');
+      }, 2300);
+    }
+
+    // Copy single section
+    function copySection(key, title) {
+      updateScript();
+      const code = window.sectionScripts && window.sectionScripts[key];
+      if (!code) {
+        showToast(`Раздел «${title || key}» пуст или отключен`);
+        return;
+      }
       navigator.clipboard.writeText(code).then(() => {
-        const toast = document.getElementById('toast');
-        toast.style.opacity = '1';
-        setTimeout(() => toast.style.opacity = '0', 2000);
+        showToast(`Блок «${title || key}» скопирован!`);
+      }).catch(() => {
+        const ta = document.createElement('textarea');
+        ta.value = code;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        showToast(`Блок «${title || key}» скопирован!`);
       });
     }
 
-    // Download file
+    // Copy full script
+    function copyScript() {
+      const code = window.rawScript || '';
+      if (!code) {
+        showToast('Скрипт пуст');
+        return;
+      }
+      navigator.clipboard.writeText(code).then(() => {
+        showToast('Полный скрипт .rsc скопирован!');
+      }).catch(() => {
+        const ta = document.createElement('textarea');
+        ta.value = code;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        showToast('Полный скрипт .rsc скопирован!');
+      });
+    }
+
+    // Download script
     function downloadScript() {
-      const code = document.getElementById('outputCode').textContent;
+      const code = window.rawScript || '';
+      if (!code) {
+        showToast('Скрипт пуст');
+        return;
+      }
       const blob = new Blob([code], { type: 'text/plain;charset=utf-8' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
       a.download = 'mikrotik_complete_config.rsc';
       a.click();
+      showToast('Файл .rsc скачивается...');
     }
 
     // Modal keyboard shortcut
