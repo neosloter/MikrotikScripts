@@ -1873,6 +1873,16 @@
       updateScript();
     }
 
+    // Field setters used by inline handlers in client/site cards
+    function setClientField(id, field, value) {
+      const c = wgClients.find(x => x.id === id);
+      if (c) c[field] = value;
+    }
+    function setSiteField(id, field, value) {
+      const s = wgSites.find(x => x.id === id);
+      if (s) s[field] = value;
+    }
+
     function removeClient(id) {
       const idx = wgClients.findIndex(c => c.id === id);
       if (idx !== -1) {
@@ -1914,7 +1924,7 @@
           <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-2 border-b border-slate-800/80 gap-2">
             <div class="flex items-center gap-2">
               <span class="w-2 h-2 rounded-full ${isMikrotik ? 'bg-cyan-400' : 'bg-emerald-400'}"></span>
-              <input type="text" value="${c.name}" class="bg-transparent font-semibold text-xs text-white border-b border-transparent hover:border-slate-700 focus:border-cyan-400 focus:outline-none px-1" oninput="c.name=this.value; updateScript();">
+              <input type="text" value="${c.name}" class="bg-transparent font-semibold text-xs text-white border-b border-transparent hover:border-slate-700 focus:border-cyan-400 focus:outline-none px-1" oninput="setClientField(${c.id}, 'name', this.value); updateScript();">
               <span class="text-[10px] px-2 py-0.5 rounded ${isMikrotik ? 'bg-cyan-950 text-cyan-400 border border-cyan-800' : 'bg-emerald-950 text-emerald-400 border border-emerald-800'}">
                 ${isMikrotik ? '🌐 MikroTik Router' : '📱 ПК / Смартфон'}
               </span>
@@ -1941,18 +1951,18 @@
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
             <div>
               <label class="block text-[11px] text-slate-400 mb-1">Тип клиента</label>
-              <select class="form-input text-xs" onchange="c.clientType=this.value; renderClients(); updateScript();">
+              <select class="form-input text-xs" onchange="setClientField(${c.id}, 'clientType', this.value); renderClients(); updateScript();">
                 <option value="generic" ${!isMikrotik ? 'selected' : ''}>📱 ПК / Смартфон (Generic WireGuard)</option>
                 <option value="mikrotik" ${isMikrotik ? 'selected' : ''}>🌐 Клиентский MikroTik (RouterOS v7)</option>
               </select>
             </div>
             <div>
               <label class="block text-[11px] text-slate-400 mb-1">Туннельный IP клиента</label>
-              <input type="text" value="${c.tunIp}" class="form-input text-xs font-mono" oninput="c.tunIp=this.value; updateScript();">
+              <input type="text" value="${c.tunIp}" class="form-input text-xs font-mono" oninput="setClientField(${c.id}, 'tunIp', this.value); updateScript();">
             </div>
             <div>
               <label class="block text-[11px] text-slate-400 mb-1">Маршрутизация трафика</label>
-              <select class="form-input text-xs" onchange="c.routeMode=this.value; updateScript();">
+              <select class="form-input text-xs" onchange="setClientField(${c.id}, 'routeMode', this.value); updateScript();">
                 <option value="all" ${c.routeMode === 'all' ? 'selected' : ''}>Весь интернет через VPN (0.0.0.0/0)</option>
                 <option value="split" ${c.routeMode === 'split' ? 'selected' : ''}>Только сеть сервера (Split-Tunnel)</option>
               </select>
@@ -1961,11 +1971,11 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
             <div>
               <label class="block text-[11px] text-slate-400 mb-1">Public Key клиента (для MikroTik сервера)</label>
-              <input type="text" value="${c.pubKey}" class="form-input text-xs font-mono text-emerald-400" oninput="c.pubKey=this.value; updateScript();">
+              <input type="text" value="${c.pubKey}" class="form-input text-xs font-mono text-emerald-400" oninput="setClientField(${c.id}, 'pubKey', this.value); updateScript();">
             </div>
             <div>
               <label class="block text-[11px] text-slate-400 mb-1">Private Key клиента (секретный ключ устройства)</label>
-              <input type="text" value="${c.privKey}" class="form-input text-xs font-mono text-cyan-300" oninput="c.privKey=this.value; updateScript();">
+              <input type="text" value="${c.privKey}" class="form-input text-xs font-mono text-cyan-300" oninput="setClientField(${c.id}, 'privKey', this.value); updateScript();">
             </div>
           </div>
         `;
@@ -2037,7 +2047,7 @@
           <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-2 border-b border-slate-800/80 gap-2">
             <div class="flex items-center gap-2">
               <span class="w-2 h-2 rounded-full bg-blue-400"></span>
-              <input type="text" value="${s.name}" class="bg-transparent font-semibold text-xs text-white border-b border-transparent hover:border-slate-700 focus:border-cyan-400 focus:outline-none px-1" oninput="s.name=this.value; updateScript();">
+              <input type="text" value="${s.name}" class="bg-transparent font-semibold text-xs text-white border-b border-transparent hover:border-slate-700 focus:border-cyan-400 focus:outline-none px-1" oninput="setSiteField(${s.id}, 'name', this.value); updateScript();">
               <span class="text-[10px] px-2 py-0.5 rounded bg-blue-950 text-blue-400 border border-blue-800">
                 🏢 Site-to-Site Филиал
               </span>
@@ -2055,25 +2065,25 @@
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
             <div>
               <label class="block text-[11px] text-slate-400 mb-1">Туннельный IP филиала</label>
-              <input type="text" value="${s.tunIp}" class="form-input text-xs font-mono" oninput="s.tunIp=this.value; updateScript();">
+              <input type="text" value="${s.tunIp}" class="form-input text-xs font-mono" oninput="setSiteField(${s.id}, 'tunIp', this.value); updateScript();">
             </div>
             <div>
               <label class="block text-[11px] text-slate-400 mb-1">Локальная подсеть филиала (LAN)</label>
-              <input type="text" value="${s.remoteLan}" placeholder="192.168.2.0/24" class="form-input text-xs font-mono" oninput="s.remoteLan=this.value; updateScript();">
+              <input type="text" value="${s.remoteLan}" placeholder="192.168.2.0/24" class="form-input text-xs font-mono" oninput="setSiteField(${s.id}, 'remoteLan', this.value); updateScript();">
             </div>
             <div>
               <label class="block text-[11px] text-slate-400 mb-1">Внешний IP / Endpoint филиала (опционально)</label>
-              <input type="text" value="${s.endpoint}" placeholder="Пусто, если филиал за NAT" class="form-input text-xs font-mono" oninput="s.endpoint=this.value; updateScript();">
+              <input type="text" value="${s.endpoint}" placeholder="Пусто, если филиал за NAT" class="form-input text-xs font-mono" oninput="setSiteField(${s.id}, 'endpoint', this.value); updateScript();">
             </div>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
             <div>
               <label class="block text-[11px] text-slate-400 mb-1">Public Key филиала (для сервера)</label>
-              <input type="text" value="${s.pubKey}" class="form-input text-xs font-mono text-emerald-400" oninput="s.pubKey=this.value; updateScript();">
+              <input type="text" value="${s.pubKey}" class="form-input text-xs font-mono text-emerald-400" oninput="setSiteField(${s.id}, 'pubKey', this.value); updateScript();">
             </div>
             <div>
               <label class="block text-[11px] text-slate-400 mb-1">Private Key филиала (секретный ключ филиала)</label>
-              <input type="text" value="${s.privKey}" class="form-input text-xs font-mono text-cyan-300" oninput="s.privKey=this.value; updateScript();">
+              <input type="text" value="${s.privKey}" class="form-input text-xs font-mono text-cyan-300" oninput="setSiteField(${s.id}, 'privKey', this.value); updateScript();">
             </div>
           </div>
         `;
