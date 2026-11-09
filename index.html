@@ -52,10 +52,20 @@
       box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
     }
   
-    /* Line numbers and code container */
-    #lineNumbersGutter {
+    /* Code Editor Rows and Line Numbers */
+    .line-num {
       user-select: none;
       -webkit-user-select: none;
+    }
+    .code-line:hover .line-num {
+      background-color: #131c2e;
+    }
+    .line-text {
+      white-space: pre;
+    }
+    .code-wrap-active .line-text {
+      white-space: pre-wrap !important;
+      word-break: break-all;
     }
     .search-match {
       background-color: rgba(234, 179, 8, 0.4);
@@ -1711,11 +1721,9 @@
         </div>
 
         <!-- Scrollable Code View -->
-        <div id="codeScrollContainer" class="flex-1 overflow-auto custom-scroll flex font-mono text-[11.5px] leading-[1.6]">
-          <!-- Gutter for line numbers -->
-          <div id="lineNumbersGutter" class="sticky left-0 select-none bg-[#070a12] text-slate-600 border-r border-slate-800/80 px-2 py-3 text-right font-mono min-w-[2.8rem] z-10 shrink-0"></div>
-          <!-- Code content with syntax highlighting -->
-          <pre id="outputCode" class="flex-1 p-3 text-slate-300 font-mono whitespace-pre outline-none select-text"></pre>
+        <div id="codeScrollContainer" class="flex-1 overflow-auto custom-scroll font-mono text-[11.5px] leading-[1.6]">
+          <!-- Code content with per-line numbers & syntax highlighting -->
+          <div id="outputCode" class="min-w-full inline-block py-2"></div>
         </div>
         
         <!-- Floating Toast message -->
@@ -3718,42 +3726,38 @@
     // =========================================================
     // RouterOS Syntax Highlighter & Code Box Controls (Suite)
     // =========================================================
+    function highlightRouterOSLine(line) {
+      if (!line && line !== '') return '';
+      const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const trimmed = line.trim();
+      if (!trimmed) {
+        return '';
+      }
+      if (trimmed.startsWith('#')) {
+        return `<span class="text-slate-500 italic">${esc(line)}</span>`;
+      }
+
+      const indentLen = line.length - line.trimStart().length;
+      const indent = line.substring(0, indentLen);
+      const rest = line.substring(indentLen);
+
+      if (rest.startsWith('/')) {
+        const verbMatch = rest.match(/\s+(set|add|remove|enable|disable|print|export|find|get)\b/);
+        if (verbMatch) {
+          const menuPart = rest.substring(0, verbMatch.index);
+          const cmdPart = rest.substring(verbMatch.index + 1);
+          return `${indent}<span class="text-sky-400 font-bold">${esc(menuPart)}</span> ${formatCommand(cmdPart)}`;
+        } else {
+          return `${indent}<span class="text-sky-400 font-bold">${esc(rest)}</span>`;
+        }
+      } else {
+        return `${indent}${formatCommand(rest)}`;
+      }
+    }
+
     function highlightRouterOS(code) {
       if (!code) return '';
-      const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-      const lines = code.split('\n');
-      const out = [];
-
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        const trimmed = line.trim();
-        if (!trimmed) {
-          out.push('');
-          continue;
-        }
-        if (trimmed.startsWith('#')) {
-          out.push(`<span class="text-slate-500 italic">${esc(line)}</span>`);
-          continue;
-        }
-
-        const indentLen = line.length - line.trimStart().length;
-        const indent = line.substring(0, indentLen);
-        const rest = line.substring(indentLen);
-
-        if (rest.startsWith('/')) {
-          const verbMatch = rest.match(/\s+(set|add|remove|enable|disable|print|export|find|get)\b/);
-          if (verbMatch) {
-            const menuPart = rest.substring(0, verbMatch.index);
-            const cmdPart = rest.substring(verbMatch.index + 1);
-            out.push(`${indent}<span class="text-sky-400 font-bold">${esc(menuPart)}</span> ${formatCommand(cmdPart)}`);
-          } else {
-            out.push(`${indent}<span class="text-sky-400 font-bold">${esc(rest)}</span>`);
-          }
-        } else {
-          out.push(`${indent}${formatCommand(rest)}`);
-        }
-      }
-      return out.join('\n');
+      return code.split('\n').map(highlightRouterOSLine).join('\n');
     }
 
     function formatCommand(text) {
@@ -3816,13 +3820,11 @@
     function renderCodeView(scriptText, activeCount = 0, searchQuery = '') {
       window.rawScript = scriptText || '';
       const outputEl = document.getElementById('outputCode');
-      const gutterEl = document.getElementById('lineNumbersGutter');
       const statsBadge = document.getElementById('stats-badge');
-      if (!outputEl || !gutterEl) return;
+      if (!outputEl) return;
 
       if (!scriptText) {
         outputEl.innerHTML = '';
-        gutterEl.textContent = '';
         if (statsBadge) statsBadge.textContent = '0 строк';
         return;
       }
@@ -3832,25 +3834,40 @@
         statsBadge.textContent = `${lines.length} строк (${activeCount} из 7 модулей)`;
       }
 
-      let gutterText = '';
-      for (let i = 1; i <= lines.length; i++) {
-        gutterText += i + '\n';
+      let escRegex = null;
+      let mCount = 0;
+      const hasSearch = searchQuery && searchQuery.trim().length > 0;
+      if (hasSearch) {
+        const q = searchQuery.trim();
+        const escQuery = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        escRegex = new RegExp(`(?![^<]*>)(${escQuery})`, 'gi');
       }
-      gutterEl.textContent = gutterText;
 
-      let highlighted = highlightRouterOS(scriptText);
+      const rows = [];
+      for (let i = 0; i < lines.length; i++) {
+        const lineNum = i + 1;
+        const line = lines[i];
+        let hl = highlightRouterOSLine(line);
+
+        if (hasSearch && hl) {
+          hl = hl.replace(escRegex, (m) => {
+            mCount++;
+            return `<mark class="search-match" data-match-idx="${mCount}">${m}</mark>`;
+          });
+        }
+
+        const contentHtml = hl !== '' ? hl : '&nbsp;';
+        rows.push(
+          `<div class="code-line flex hover:bg-slate-800/40 leading-[1.6]">` +
+          `<span class="line-num sticky left-0 z-10 select-none text-right text-slate-600 bg-[#090d16] border-r border-slate-800/80 pr-3 pl-2 w-12 shrink-0 font-mono text-[11px]">${lineNum}</span>` +
+          `<span class="line-text pl-3 text-slate-300 font-mono flex-1 whitespace-pre">${contentHtml}</span>` +
+          `</div>`
+        );
+      }
 
       const searchStats = document.getElementById('searchStatsBar');
       const matchCountSpan = document.getElementById('searchMatchCount');
-      if (searchQuery && searchQuery.trim().length > 0) {
-        const q = searchQuery.trim();
-        const escQuery = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const regex = new RegExp(`(?![^<]*>)(${escQuery})`, 'gi');
-        let mCount = 0;
-        highlighted = highlighted.replace(regex, (m) => {
-          mCount++;
-          return `<mark class="search-match" data-match-idx="${mCount}">${m}</mark>`;
-        });
+      if (hasSearch) {
         if (searchStats && matchCountSpan) {
           searchStats.classList.remove('hidden');
           matchCountSpan.textContent = `Найдено: ${mCount}`;
@@ -3859,7 +3876,7 @@
         if (searchStats) searchStats.classList.add('hidden');
       }
 
-      outputEl.innerHTML = highlighted;
+      outputEl.innerHTML = rows.join('');
     }
 
     // Search and navigation in code
@@ -3920,18 +3937,16 @@
     function toggleLineWrap() {
       isLineWrap = !isLineWrap;
       const btn = document.getElementById('wrapToggleBtn');
-      const code = document.getElementById('outputCode');
-      if (!btn || !code) return;
+      const container = document.getElementById('codeScrollContainer');
+      if (!btn || !container) return;
       if (isLineWrap) {
         btn.classList.add('bg-cyan-950', 'text-cyan-300', 'border-cyan-800');
         btn.classList.remove('bg-slate-800', 'text-slate-400');
-        code.classList.remove('whitespace-pre');
-        code.classList.add('whitespace-pre-wrap', 'break-all');
+        container.classList.add('code-wrap-active');
       } else {
         btn.classList.remove('bg-cyan-950', 'text-cyan-300', 'border-cyan-800');
         btn.classList.add('bg-slate-800', 'text-slate-400');
-        code.classList.remove('whitespace-pre-wrap', 'break-all');
-        code.classList.add('whitespace-pre');
+        container.classList.remove('code-wrap-active');
       }
     }
 
