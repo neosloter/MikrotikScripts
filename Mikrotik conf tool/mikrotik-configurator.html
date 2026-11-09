@@ -127,17 +127,20 @@
       <button onclick="switchTab('firewall')" id="tab-firewall" class="tab-btn px-4 py-2.5 text-xs font-semibold rounded-t-lg border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 whitespace-nowrap">
         <span class="text-base">🛡️</span> Модуль 1: Firewall
       </button>
+      <button onclick="switchTab('routing')" id="tab-routing" class="tab-btn px-4 py-2.5 text-xs font-semibold rounded-t-lg border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 whitespace-nowrap">
+        <span class="text-base">🔀</span> Модуль 2: Dual-WAN & Route Marking
+      </button>
       <button onclick="switchTab('wireguard')" id="tab-wireguard" class="tab-btn px-4 py-2.5 text-xs font-semibold rounded-t-lg border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 whitespace-nowrap">
-        <span class="text-base">⚡</span> Модуль 2: WireGuard
+        <span class="text-base">⚡</span> Модуль 3: WireGuard
       </button>
       <button onclick="switchTab('telegram')" id="tab-telegram" class="tab-btn px-4 py-2.5 text-xs font-semibold rounded-t-lg border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 whitespace-nowrap">
-        <span class="text-base">🤖</span> Модуль 3: Telegram Alerts
+        <span class="text-base">🤖</span> Модуль 4: Telegram Alerts
       </button>
       <button onclick="switchTab('defense')" id="tab-defense" class="tab-btn px-4 py-2.5 text-xs font-semibold rounded-t-lg border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 whitespace-nowrap">
-        <span class="text-base">🛑</span> Модуль 4: Brute-Force & Scans
+        <span class="text-base">🛑</span> Модуль 5: Brute-Force & Scans
       </button>
       <button onclick="switchTab('system')" id="tab-system" class="tab-btn px-4 py-2.5 text-xs font-semibold rounded-t-lg border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 whitespace-nowrap">
-        <span class="text-base">🔒</span> Модуль 5: Харденинг & DoH
+        <span class="text-base">🔒</span> Модуль 6: Харденинг & DoH
       </button>
     </div>
 
@@ -154,20 +157,24 @@
           <span class="font-medium">🛡️ 1. Firewall</span>
         </label>
         <label class="flex items-center gap-1.5 cursor-pointer bg-slate-800/90 hover:bg-slate-800 px-2.5 py-1 rounded-md border border-slate-700/70 transition text-slate-200">
+          <input type="checkbox" id="mod_enable_routing" checked onchange="updateScript()" class="rounded text-cyan-500 focus:ring-0">
+          <span class="font-medium">🔀 2. Dual-WAN & Mangle</span>
+        </label>
+        <label class="flex items-center gap-1.5 cursor-pointer bg-slate-800/90 hover:bg-slate-800 px-2.5 py-1 rounded-md border border-slate-700/70 transition text-slate-200">
           <input type="checkbox" id="mod_enable_wireguard" checked onchange="updateScript()" class="rounded text-cyan-500 focus:ring-0">
-          <span class="font-medium">⚡ 2. WireGuard</span>
+          <span class="font-medium">⚡ 3. WireGuard</span>
         </label>
         <label class="flex items-center gap-1.5 cursor-pointer bg-slate-800/90 hover:bg-slate-800 px-2.5 py-1 rounded-md border border-slate-700/70 transition text-slate-200">
           <input type="checkbox" id="mod_enable_telegram" checked onchange="updateScript()" class="rounded text-cyan-500 focus:ring-0">
-          <span class="font-medium">🤖 3. Telegram</span>
+          <span class="font-medium">🤖 4. Telegram</span>
         </label>
         <label class="flex items-center gap-1.5 cursor-pointer bg-slate-800/90 hover:bg-slate-800 px-2.5 py-1 rounded-md border border-slate-700/70 transition text-slate-200">
           <input type="checkbox" id="mod_enable_defense" checked onchange="updateScript()" class="rounded text-cyan-500 focus:ring-0">
-          <span class="font-medium">🛑 4. Defense</span>
+          <span class="font-medium">🛑 5. Defense</span>
         </label>
         <label class="flex items-center gap-1.5 cursor-pointer bg-slate-800/90 hover:bg-slate-800 px-2.5 py-1 rounded-md border border-slate-700/70 transition text-slate-200">
           <input type="checkbox" id="mod_enable_system" checked onchange="updateScript()" class="rounded text-cyan-500 focus:ring-0">
-          <span class="font-medium">🔒 5. Харденинг & DoH</span>
+          <span class="font-medium">🔒 6. Харденинг & DoH</span>
         </label>
       </div>
       <div class="flex items-center gap-1.5">
@@ -315,7 +322,12 @@
             </h2>
             <div class="flex items-center gap-2">
               <label class="flex items-center gap-2 cursor-pointer text-xs">
-              <input type="checkbox" id="init_wifi_enabled" checked onchange="toggleWifiFields(); updateScript()" class="rounded text-cyan-500 focus:ring-0">
+              <input type="checkbox" id="init_wifi_enabled" checked onchange="toggleWifiFields();
+      toggleDwanFields();
+      toggleDwanModeFields();
+      toggleIsp2ProtoFields();
+      togglePbrFields();
+      togglePbrClientsField(); updateScript()" class="rounded text-cyan-500 focus:ring-0">
               <span class="text-slate-300 font-medium">Конфигурировать Wi-Fi</span>
             </label>
               <button onclick="copySection('init_wifi', 'Wi-Fi сеть')" type="button" title="Скопировать только команды этого раздела" class="copy-section-btn text-[11px] text-slate-400 hover:text-cyan-300 bg-slate-900/80 hover:bg-slate-800 px-2 py-0.5 rounded border border-slate-700/60 transition flex items-center gap-1 shrink-0">
@@ -701,7 +713,227 @@
 
       <!-- ============================================== -->
       <!-- TAB 2: WIREGUARD MODULE -->
+            <!-- ============================================== -->
+      <!-- TAB 2: DUAL-WAN & POLICY-BASED ROUTING (MANGLE) -->
       <!-- ============================================== -->
+      <div id="content-routing" class="hidden space-y-5">
+        
+        <!-- Info Banner -->
+        <div class="bg-gradient-to-r from-indigo-950/70 to-slate-900 border border-indigo-800/50 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs leading-relaxed text-slate-300">
+          <div class="flex gap-3">
+            <div class="text-indigo-400 text-lg">🔀</div>
+            <div>
+              <strong class="text-indigo-300 font-semibold">Модуль Dual-WAN & Policy-Based Routing (RouterOS v7):</strong>
+              Настройка второго интернет-провайдера (Failover с рекурсивным пингом или балансировка PCC), гарантированный входящий доступ по обоим внешним IP и избирательная маршрутизация трафика (YouTube, Telegram, заблокированные ресурсы) или устройств через VPN-туннель.
+            </div>
+          </div>
+          <button onclick="selectOnlyModule('routing')" class="shrink-0 text-[11px] bg-indigo-900/60 hover:bg-indigo-800 text-indigo-300 px-3 py-1.5 rounded-lg border border-indigo-700/80 transition flex items-center gap-1.5 whitespace-nowrap">
+            ⚡ Только этот модуль
+          </button>
+        </div>
+
+        <!-- 1. Второй провайдер и режим Dual-WAN -->
+        <div class="bg-[#131c2e] border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <h2 class="text-sm font-bold text-white flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-cyan-400"></span> 1. Второй провайдер и режим Dual-WAN
+            </h2>
+            <div class="flex items-center gap-2">
+              <label class="flex items-center gap-2 cursor-pointer text-xs">
+                <input type="checkbox" id="dwan_enabled" checked onchange="toggleDwanFields(); updateScript()" class="rounded text-cyan-500 focus:ring-0">
+                <span class="text-slate-300 font-medium">Включить Dual-WAN</span>
+              </label>
+              <button onclick="copySection('dwan_setup', 'Dual-WAN Core')" type="button" title="Скопировать только команды этого раздела" class="copy-section-btn text-[11px] text-slate-400 hover:text-cyan-300 bg-slate-900/80 hover:bg-slate-800 px-2 py-0.5 rounded border border-slate-700/60 transition flex items-center gap-1 shrink-0">
+                <svg class="w-3 h-3 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                <span>Скопировать блок</span>
+              </button>
+            </div>
+          </div>
+
+          <div id="dwan_core_container" class="space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Интерфейс ISP 1 (Основной)</label>
+                <input type="text" id="dwan_isp1_iface" value="ether1" class="form-input text-xs font-mono" oninput="updateScript()">
+                <span class="text-[10px] text-slate-500">Основной интернет-канал</span>
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Интерфейс ISP 2 (Второй / Резервный)</label>
+                <input type="text" id="dwan_isp2_iface" value="ether2" class="form-input text-xs font-mono" oninput="updateScript()">
+                <span class="text-[10px] text-slate-500">ether2, pppoe-out2, lte1</span>
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Режим работы двух каналов</label>
+                <select id="dwan_mode" class="form-input text-xs" onchange="toggleDwanModeFields(); updateScript()">
+                  <option value="failover_recursive" selected>Отказоустойчивость (Recursive Ping Failover)</option>
+                  <option value="pcc">Балансировка соединений (PCC 50/50)</option>
+                  <option value="pbr_only">Только Policy Routing (ISP 2 для выделенного трафика)</option>
+                </select>
+                <span class="text-[10px] text-slate-500">Архитектура распределения каналов</span>
+              </div>
+            </div>
+
+            <!-- Рекурсивная маршрутизация параметры -->
+            <div id="dwan_failover_params" class="p-3.5 bg-slate-900/60 rounded-lg border border-slate-800/80 space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-cyan-300">Рекурсивная проверка доступности интернета (Recursive Check-Gateway)</span>
+                <span class="text-[10px] text-emerald-400 bg-emerald-950 px-2 py-0.5 rounded border border-emerald-800 font-mono">Ping Check</span>
+              </div>
+              <p class="text-[11px] text-slate-400">Роутер непрерывно пингует указанные внешние DNS через соответствующие каналы. Если у ISP 1 пропал доступ в интернет (но линк горит), маршрут мгновенно деактивируется, переводя трафик на ISP 2.</p>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div>
+                  <label class="block text-slate-400 mb-1 font-medium">Хост проверки ISP 1 (Target Host 1)</label>
+                  <input type="text" id="dwan_check_target1" value="1.1.1.1" class="form-input text-xs font-mono" oninput="updateScript()">
+                  <span class="text-[10px] text-slate-500">Надежный DNS (1.1.1.1 или 77.88.8.8)</span>
+                </div>
+                <div>
+                  <label class="block text-slate-400 mb-1 font-medium">Хост проверки ISP 2 (Target Host 2)</label>
+                  <input type="text" id="dwan_check_target2" value="8.8.8.8" class="form-input text-xs font-mono" oninput="updateScript()">
+                  <span class="text-[10px] text-slate-500">Надежный DNS (8.8.8.8 или 1.0.0.1)</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Настройка типа подключения ISP 2 -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Тип подключения ISP 2</label>
+                <select id="dwan_isp2_proto" class="form-input text-xs" onchange="toggleIsp2ProtoFields(); updateScript()">
+                  <option value="dhcp" selected>DHCP-клиент (Динамический IP)</option>
+                  <option value="static">Статический IP</option>
+                  <option value="pppoe">PPPoE подключение</option>
+                </select>
+              </div>
+              <div id="dwan_isp2_static_gw_container" class="hidden">
+                <label class="block text-xs font-medium text-slate-400 mb-1">Шлюз ISP 2 (Gateway IP)</label>
+                <input type="text" id="dwan_isp2_static_gw" value="192.168.2.1" class="form-input text-xs font-mono" oninput="updateScript()">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Входящий доступ на оба провайдера (Multi-WAN Inbound) -->
+        <div class="bg-[#131c2e] border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <h2 class="text-sm font-bold text-white flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-cyan-400"></span> 2. Входящий доступ и ответы (Multi-WAN Inbound Connection Marking)
+            </h2>
+            <div class="flex items-center gap-2">
+              <label class="flex items-center gap-2 cursor-pointer text-xs">
+                <input type="checkbox" id="dwan_inbound_marking" checked onchange="updateScript()" class="rounded text-cyan-500 focus:ring-0">
+                <span class="text-slate-300 font-medium">Маркировать ответы извне</span>
+              </label>
+              <button onclick="copySection('dwan_inbound', 'Multi-WAN Inbound')" type="button" title="Скопировать только команды этого раздела" class="copy-section-btn text-[11px] text-slate-400 hover:text-cyan-300 bg-slate-900/80 hover:bg-slate-800 px-2 py-0.5 rounded border border-slate-700/60 transition flex items-center gap-1 shrink-0">
+                <svg class="w-3 h-3 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                <span>Скопировать блок</span>
+              </button>
+            </div>
+          </div>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            При подключении к роутеру из интернета (через Winbox, SSH, VPN или проброшенные порты) роутер маркирует входящее соединение (<code class="text-cyan-300">ISP1_conn</code> или <code class="text-cyan-300">ISP2_conn</code>) и гарантирует, что ответ уйдет строго через того же провайдера. Без этого правила удаленный доступ на резервный IP не работает!
+          </p>
+        </div>
+
+        <!-- 3. Policy-Based Routing (Маршрутизация через VPN / Туннель) -->
+        <div class="bg-[#131c2e] border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <h2 class="text-sm font-bold text-white flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-cyan-400"></span> 3. Маршрутизация сайтов через VPN-туннель (Policy-Based Routing)
+            </h2>
+            <div class="flex items-center gap-2">
+              <label class="flex items-center gap-2 cursor-pointer text-xs">
+                <input type="checkbox" id="pbr_enabled" checked onchange="togglePbrFields(); updateScript()" class="rounded text-cyan-500 focus:ring-0">
+                <span class="text-slate-300 font-medium">Включить Policy Routing</span>
+              </label>
+              <button onclick="copySection('pbr_routing', 'Policy-Based Routing')" type="button" title="Скопировать только команды этого раздела" class="copy-section-btn text-[11px] text-slate-400 hover:text-cyan-300 bg-slate-900/80 hover:bg-slate-800 px-2 py-0.5 rounded border border-slate-700/60 transition flex items-center gap-1 shrink-0">
+                <svg class="w-3 h-3 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                <span>Скопировать блок</span>
+              </button>
+            </div>
+          </div>
+
+          <div id="pbr_fields_container" class="space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Выходной шлюз / VPN туннель</label>
+                <input type="text" id="pbr_gateway" value="wg-vpn" class="form-input text-xs font-mono" oninput="updateScript()">
+                <span class="text-[10px] text-slate-500">Имя интерфейса (wg-vpn, ovpn-out1, ether2)</span>
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Имя таблицы маршрутизации</label>
+                <input type="text" id="pbr_table_name" value="to_VPN" class="form-input text-xs font-mono" oninput="updateScript()">
+                <span class="text-[10px] text-slate-500">RouterOS v7 FIB таблица</span>
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Имя адрес-листа (Address List)</label>
+                <input type="text" id="pbr_list_name" value="VPN_Bypass" class="form-input text-xs font-mono" oninput="updateScript()">
+                <span class="text-[10px] text-slate-500">Список адресов для заворачивания в туннель</span>
+              </div>
+            </div>
+
+            <!-- Готовые наборы сервисов -->
+            <div class="space-y-2 p-3.5 bg-slate-900/60 rounded-lg border border-slate-800/80">
+              <span class="text-xs font-semibold text-slate-200 block mb-1">Предустановленные категории сервисов (RouterOS FQDN & IP):</span>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                <label class="flex items-center gap-2 cursor-pointer p-2 rounded bg-slate-800/50 hover:bg-slate-800">
+                  <input type="checkbox" id="pbr_preset_youtube" checked onchange="updateScript()" class="rounded text-cyan-500 focus:ring-0">
+                  <span class="text-slate-200">📺 YouTube (домены + googlevideo CDN)</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer p-2 rounded bg-slate-800/50 hover:bg-slate-800">
+                  <input type="checkbox" id="pbr_preset_telegram" checked onchange="updateScript()" class="rounded text-cyan-500 focus:ring-0">
+                  <span class="text-slate-200">💬 Telegram (домены + AS44907 CIDR)</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer p-2 rounded bg-slate-800/50 hover:bg-slate-800">
+                  <input type="checkbox" id="pbr_preset_meta" checked onchange="updateScript()" class="rounded text-cyan-500 focus:ring-0">
+                  <span class="text-slate-200">📷 Instagram & Meta (домены и CDN)</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer p-2 rounded bg-slate-800/50 hover:bg-slate-800">
+                  <input type="checkbox" id="pbr_preset_ai" checked onchange="updateScript()" class="rounded text-cyan-500 focus:ring-0">
+                  <span class="text-slate-200">🤖 OpenAI, ChatGPT, Claude, Gemini</span>
+                </label>
+              </div>
+
+              <div class="pt-2">
+                <label class="block text-xs font-medium text-slate-400 mb-1">Дополнительные домены / IP (через запятую)</label>
+                <input type="text" id="pbr_custom_domains" value="rutracker.org, kinozal.tv, linkedin.com, twitter.com, x.com" class="form-input text-xs" oninput="updateScript()">
+                <span class="text-[10px] text-slate-500">Домены автоматически разрешаются RouterOS v7 в IP-адреса с динамическим обновлением</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Привязка конкретных локальных устройств к VPN (Client-Based Routing) -->
+        <div class="bg-[#131c2e] border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <h2 class="text-sm font-bold text-white flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-cyan-400"></span> 4. Выборочная отправка устройств целиком в VPN / ISP2
+            </h2>
+            <div class="flex items-center gap-2">
+              <label class="flex items-center gap-2 cursor-pointer text-xs">
+                <input type="checkbox" id="pbr_clients_enabled" onchange="togglePbrClientsField(); updateScript()" class="rounded text-cyan-500 focus:ring-0">
+                <span class="text-slate-300 font-medium">Активировать для устройств</span>
+              </label>
+              <button onclick="copySection('pbr_clients', 'Client-to-VPN Routing')" type="button" title="Скопировать только команды этого раздела" class="copy-section-btn text-[11px] text-slate-400 hover:text-cyan-300 bg-slate-900/80 hover:bg-slate-800 px-2 py-0.5 rounded border border-slate-700/60 transition flex items-center gap-1 shrink-0">
+                <svg class="w-3 h-3 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                <span>Скопировать блок</span>
+              </button>
+            </div>
+          </div>
+
+          <div id="pbr_clients_container" class="hidden space-y-3">
+            <p class="text-xs text-slate-400 leading-relaxed">
+              Указанные хосты (Smart TV, рабочий ноутбук, медиаприставка) будут отправлять <strong>весь</strong> свой внешний трафик через VPN-туннель, сохраняя при этом доступ к локальным принтерам и серверам (RFC1918).
+            </p>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">IP-адреса или диапазоны клиентов (через запятую)</label>
+              <input type="text" id="pbr_clients_ips" value="192.168.88.50, 192.168.88.100-192.168.88.110" class="form-input text-xs font-mono" oninput="updateScript()">
+              <span class="text-[10px] text-slate-500">Адреса клиентов локальной сети, которым нужен полный VPN</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+<!-- ============================================== -->
       <div id="content-wireguard" class="hidden space-y-5">
         
         <!-- Info Banner -->
@@ -2024,6 +2256,10 @@
       const fwIsp = document.getElementById('fw_isp_interfaces');
       const effectiveWan = (wanProto === 'pppoe') ? pppoeName : wanIface;
       if (fwIsp && effectiveWan) fwIsp.value = effectiveWan;
+
+      // 4. Sync WAN interface to Dual-WAN ISP 1
+      const dwanIsp1 = document.getElementById('dwan_isp1_iface');
+      if (dwanIsp1 && effectiveWan) dwanIsp1.value = effectiveWan;
     }
 
     function toggleWanProtoFields() {
@@ -2040,6 +2276,33 @@
       if (container) container.classList.toggle('hidden', !enabled);
     }
 
+        // Dual-WAN & Policy Routing UI toggles
+    function toggleDwanFields() {
+      const enabled = document.getElementById('dwan_enabled')?.checked ?? true;
+      const c = document.getElementById('dwan_core_container');
+      if (c) c.classList.toggle('hidden', !enabled);
+    }
+    function toggleDwanModeFields() {
+      const mode = document.getElementById('dwan_mode')?.value;
+      const failoverParams = document.getElementById('dwan_failover_params');
+      if (failoverParams) failoverParams.classList.toggle('hidden', mode !== 'failover_recursive');
+    }
+    function toggleIsp2ProtoFields() {
+      const proto = document.getElementById('dwan_isp2_proto')?.value;
+      const gwContainer = document.getElementById('dwan_isp2_static_gw_container');
+      if (gwContainer) gwContainer.classList.toggle('hidden', proto !== 'static');
+    }
+    function togglePbrFields() {
+      const enabled = document.getElementById('pbr_enabled')?.checked ?? true;
+      const c = document.getElementById('pbr_fields_container');
+      if (c) c.classList.toggle('hidden', !enabled);
+    }
+    function togglePbrClientsField() {
+      const enabled = document.getElementById('pbr_clients_enabled')?.checked ?? false;
+      const c = document.getElementById('pbr_clients_container');
+      if (c) c.classList.toggle('hidden', !enabled);
+    }
+
     function toggleWifiFields() {
       const enabled = document.getElementById('init_wifi_enabled')?.checked ?? true;
       const fields = document.getElementById('init_wifi_fields');
@@ -2054,7 +2317,7 @@
 
     // Tab switching
     let currentActiveTab = 'init';
-    const allModulesList = ['init', 'firewall', 'wireguard', 'telegram', 'defense', 'system'];
+    const allModulesList = ['init', 'firewall', 'routing', 'wireguard', 'telegram', 'defense', 'system'];
 
     function switchTab(tabId) {
       currentActiveTab = tabId;
@@ -2270,6 +2533,7 @@
       rsc.push(`# Active Modules (${activeCount}/6): ${[
         modInit ? '0.Baseline' : '',
         modFirewall ? '1.Firewall' : '',
+        modRouting ? '2.DualWAN&Mangle' : '',
         modWireguard ? '2.WireGuard' : '',
         modTelegram ? '3.Telegram' : '',
         modDefense ? '4.Defense' : '',
@@ -2476,7 +2740,170 @@
 
       // -------------------------------------------------------------
       // 1. MODULE: WIREGUARD
+      
       // -------------------------------------------------------------
+      // 2. MODULE: DUAL-WAN & POLICY-BASED ROUTING (MANGLE & FIB)
+      // -------------------------------------------------------------
+      if (modRouting) {
+        const dwanEnabled = document.getElementById('dwan_enabled')?.checked ?? true;
+        const isp1Iface = document.getElementById('dwan_isp1_iface')?.value.trim() || 'ether1';
+        const isp2Iface = document.getElementById('dwan_isp2_iface')?.value.trim() || 'ether2';
+        const dwanMode = document.getElementById('dwan_mode')?.value || 'failover_recursive';
+        const isp2Proto = document.getElementById('dwan_isp2_proto')?.value || 'dhcp';
+        const isp2StaticGw = document.getElementById('dwan_isp2_static_gw')?.value.trim() || '192.168.2.1';
+        const checkTarget1 = document.getElementById('dwan_check_target1')?.value.trim() || '1.1.1.1';
+        const checkTarget2 = document.getElementById('dwan_check_target2')?.value.trim() || '8.8.8.8';
+        const inboundMarking = document.getElementById('dwan_inbound_marking')?.checked ?? true;
+
+        const pbrEnabled = document.getElementById('pbr_enabled')?.checked ?? true;
+        const pbrGateway = document.getElementById('pbr_gateway')?.value.trim() || 'wg-vpn';
+        const pbrTableName = document.getElementById('pbr_table_name')?.value.trim() || 'to_VPN';
+        const pbrListName = document.getElementById('pbr_list_name')?.value.trim() || 'VPN_Bypass';
+        const pbrYoutube = document.getElementById('pbr_preset_youtube')?.checked ?? true;
+        const pbrTelegram = document.getElementById('pbr_preset_telegram')?.checked ?? true;
+        const pbrMeta = document.getElementById('pbr_preset_meta')?.checked ?? true;
+        const pbrAi = document.getElementById('pbr_preset_ai')?.checked ?? true;
+        const pbrCustomDomains = document.getElementById('pbr_custom_domains')?.value.split(',').map(s => s.trim()).filter(Boolean);
+
+        const pbrClientsEnabled = document.getElementById('pbr_clients_enabled')?.checked ?? false;
+        const pbrClientsIps = document.getElementById('pbr_clients_ips')?.value.split(',').map(s => s.trim()).filter(Boolean);
+
+        rsc.push(`# =====================================================================`);
+        rsc.push(`# 2. MODULE: DUAL-WAN & POLICY-BASED ROUTING (RouterOS v7)`);
+        rsc.push(`# =====================================================================`);
+
+        // RouterOS v7 Routing Tables (FIB)
+        rsc.push(`# --- RouterOS v7 Routing Tables (FIB registration) ---`);
+        rsc.push(`/routing table`);
+        rsc.push(`:if ([:len [find name="to_ISP1"]] = 0) do={ add name="to_ISP1" fib comment="Routing table for ISP1 primary" }`);
+        rsc.push(`:if ([:len [find name="to_ISP2"]] = 0) do={ add name="to_ISP2" fib comment="Routing table for ISP2 backup" }`);
+        if (pbrEnabled) {
+          rsc.push(`:if ([:len [find name="${pbrTableName}"]] = 0) do={ add name="${pbrTableName}" fib comment="Policy-Based Routing via VPN table" }`);
+        }
+        rsc.push(``);
+
+        // 1. Dual-WAN Core Setup
+        if (dwanEnabled) {
+          setSec('dwan_setup');
+          rsc.push(`# --- Dual-WAN Core: Interfaces & Routing Policies ---`);
+          // Interface List ISP
+          rsc.push(`/interface list member`);
+          rsc.push(`:if ([:len [find interface="${isp2Iface}" list=ISP]] = 0) do={ add interface="${isp2Iface}" list=ISP comment="Secondary ISP Uplink" }`);
+
+          // ISP2 Client Setup
+          if (isp2Proto === 'dhcp') {
+            rsc.push(`/ip dhcp-client`);
+            rsc.push(`:if ([:len [find interface="${isp2Iface}"]] = 0) do={ add interface="${isp2Iface}" default-route-distance=2 use-peer-dns=no use-peer-ntp=no disabled=no comment="ISP2 DHCP Client (Distance 2)" }`);
+          } else if (isp2Proto === 'static') {
+            rsc.push(`/ip route`);
+            rsc.push(`add dst-address=0.0.0.0/0 gateway=${isp2StaticGw} distance=2 comment="ISP2 Default Static Route (Distance 2)"`);
+          }
+
+          // Failover / Recursive Routing
+          if (dwanMode === 'failover_recursive') {
+            rsc.push(`# --- Failover: Recursive Check-Gateway Routes ---`);
+            rsc.push(`/ip route`);
+            rsc.push(`add dst-address=${checkTarget1}/32 gateway=${isp1Iface} scope=10 comment="Host check target via ISP1"`);
+            rsc.push(`add dst-address=0.0.0.0/0 gateway=${checkTarget1} check-gateway=ping distance=1 target-scope=11 comment="Primary Internet Route (Recursive via ISP1)"`);
+            rsc.push(`add dst-address=${checkTarget2}/32 gateway=${isp2Iface} scope=10 comment="Host check target via ISP2"`);
+            rsc.push(`add dst-address=0.0.0.0/0 gateway=${checkTarget2} check-gateway=ping distance=2 target-scope=11 comment="Secondary Backup Route (Recursive via ISP2)"`);
+          } else if (dwanMode === 'pcc') {
+            rsc.push(`# --- PCC (Per Connection Classifier) Load Balancing 50/50 ---`);
+            rsc.push(`/ip firewall mangle`);
+            rsc.push(`add chain=prerouting in-interface-list=Local dst-address-list=!RFC1918 dst-address-type=!local connection-state=new connection-mark=no-mark per-connection-classifier=both-addresses-and-ports:2/0 action=mark-connection new-connection-mark=ISP1_conn passthrough=yes comment="PCC Balance: 50% connection load to ISP1"`);
+            rsc.push(`add chain=prerouting in-interface-list=Local dst-address-list=!RFC1918 dst-address-type=!local connection-state=new connection-mark=no-mark per-connection-classifier=both-addresses-and-ports:2/1 action=mark-connection new-connection-mark=ISP2_conn passthrough=yes comment="PCC Balance: 50% connection load to ISP2"`);
+            rsc.push(`add chain=prerouting in-interface-list=Local connection-mark=ISP1_conn action=mark-routing new-routing-mark=to_ISP1 passthrough=no comment="Route marked PCC ISP1"`);
+            rsc.push(`add chain=prerouting in-interface-list=Local connection-mark=ISP2_conn action=mark-routing new-routing-mark=to_ISP2 passthrough=no comment="Route marked PCC ISP2"`);
+          }
+          rsc.push(``);
+        }
+
+        // 2. Inbound Connection Marking (Multi-WAN reply via same interface)
+        if (dwanEnabled && inboundMarking) {
+          setSec('dwan_inbound');
+          rsc.push(`# --- Multi-WAN Inbound Connection Marking (Reply via Arrival Gateway) ---`);
+          rsc.push(`/ip firewall mangle`);
+          rsc.push(`add chain=prerouting in-interface="${isp1Iface}" connection-state=new connection-mark=no-mark action=mark-connection new-connection-mark=ISP1_conn passthrough=yes comment="Multi-WAN: Mark inbound conn arriving on ISP1"`);
+          rsc.push(`add chain=output connection-mark=ISP1_conn action=mark-routing new-routing-mark=to_ISP1 passthrough=no comment="Multi-WAN: Route router replies via ISP1"`);
+          rsc.push(`add chain=prerouting in-interface="${isp2Iface}" connection-state=new connection-mark=no-mark action=mark-connection new-connection-mark=ISP2_conn passthrough=yes comment="Multi-WAN: Mark inbound conn arriving on ISP2"`);
+          rsc.push(`add chain=output connection-mark=ISP2_conn action=mark-routing new-routing-mark=to_ISP2 passthrough=no comment="Multi-WAN: Route router replies via ISP2"`);
+
+          // Table default routes for to_ISP1 and to_ISP2
+          rsc.push(`/ip route`);
+          rsc.push(`:if ([:len [find routing-table="to_ISP1"]] = 0) do={ add dst-address=0.0.0.0/0 gateway="${isp1Iface}" routing-table=to_ISP1 comment="Inbound reply route ISP1" }`);
+          rsc.push(`:if ([:len [find routing-table="to_ISP2"]] = 0) do={ add dst-address=0.0.0.0/0 gateway="${isp2Iface}" routing-table=to_ISP2 comment="Inbound reply route ISP2" }`);
+          rsc.push(``);
+        }
+
+        // 3. Policy-Based Routing (VPN Tunnel & Address-Lists)
+        if (pbrEnabled) {
+          setSec('pbr_routing');
+          rsc.push(`# --- Policy-Based Routing: Tunnel & Address-Lists ---`);
+          rsc.push(`/ip route`);
+          rsc.push(`:if ([:len [find routing-table="${pbrTableName}"]] = 0) do={ add dst-address=0.0.0.0/0 gateway="${pbrGateway}" routing-table="${pbrTableName}" comment="Policy Routing Default Route via VPN" }`);
+
+          // Populate Address-Lists with FQDN / CIDRs
+          rsc.push(`/ip firewall address-list`);
+          if (pbrYoutube) {
+            const ytDomains = ['youtube.com', 'googlevideo.com', 'ytimg.com', 'youtu.be', 'yt.be', 'ggpht.com'];
+            ytDomains.forEach(d => {
+              rsc.push(`add list="${pbrListName}" address="${d}" comment="YouTube & Video CDN"`);
+            });
+          }
+          if (pbrTelegram) {
+            const tgDomains = ['t.me', 'telegram.org', 'telegram.me', 'telegra.ph', 'web.telegram.org'];
+            tgDomains.forEach(d => {
+              rsc.push(`add list="${pbrListName}" address="${d}" comment="Telegram Web/API"`);
+            });
+            const tgCidrs = ['91.108.4.0/22', '91.108.8.0/22', '91.108.12.0/22', '91.108.16.0/22', '91.108.20.0/22', '91.108.56.0/22', '149.154.160.0/20', '149.154.164.0/22', '149.154.168.0/22', '149.154.172.0/22', '91.105.192.0/23'];
+            tgCidrs.forEach(c => {
+              rsc.push(`add list="${pbrListName}" address="${c}" comment="Telegram Core IP Subnet"`);
+            });
+          }
+          if (pbrMeta) {
+            const metaDomains = ['instagram.com', 'cdninstagram.com', 'facebook.com', 'fbcdn.net', 'threads.net'];
+            metaDomains.forEach(d => {
+              rsc.push(`add list="${pbrListName}" address="${d}" comment="Instagram / Meta"`);
+            });
+          }
+          if (pbrAi) {
+            const aiDomains = ['openai.com', 'chatgpt.com', 'anthropic.com', 'claude.ai'];
+            aiDomains.forEach(d => {
+              rsc.push(`add list="${pbrListName}" address="${d}" comment="AI Services"`);
+            });
+          }
+          if (pbrCustomDomains && pbrCustomDomains.length > 0) {
+            pbrCustomDomains.forEach(d => {
+              rsc.push(`add list="${pbrListName}" address="${d}" comment="Custom Bypass Site"`);
+            });
+          }
+
+          // Mangle Rules for PBR
+          rsc.push(`/ip firewall mangle`);
+          rsc.push(`add chain=prerouting in-interface-list=Local dst-address-list="${pbrListName}" connection-mark=no-mark action=mark-connection new-connection-mark=VPN_conn passthrough=yes comment="PBR: Mark connection for ${pbrListName}"`);
+          rsc.push(`add chain=prerouting in-interface-list=Local connection-mark=VPN_conn action=mark-routing new-routing-mark="${pbrTableName}" passthrough=no comment="PBR: Route marked traffic to ${pbrTableName}"`);
+
+          // Tunnel Masquerade
+          rsc.push(`/ip firewall nat`);
+          rsc.push(`add chain=srcnat out-interface="${pbrGateway}" action=masquerade comment="NAT Masquerade for PBR VPN Tunnel"
+`);
+        }
+
+        // 4. Client-Based Routing (Devices directly to VPN)
+        if (pbrClientsEnabled && pbrClientsIps && pbrClientsIps.length > 0) {
+          setSec('pbr_clients');
+          rsc.push(`# --- Client-Based Routing (Force LAN Devices to VPN) ---`);
+          rsc.push(`/ip firewall address-list`);
+          pbrClientsIps.forEach(ip => {
+            rsc.push(`add list="VPN_Clients" address="${ip}" comment="Device forced to VPN"`);
+          });
+          rsc.push(`/ip firewall mangle`);
+          rsc.push(`add chain=prerouting in-interface-list=Local src-address-list="VPN_Clients" dst-address-list=!RFC1918 dst-address-type=!local connection-mark=no-mark action=mark-connection new-connection-mark=VPN_conn passthrough=yes comment="PBR: Force Client to VPN (bypass RFC1918)"
+`);
+        }
+      }
+
+// -------------------------------------------------------------
       if (modWireguard) {
         rsc.push(`# =====================================================================`);
         rsc.push(`# 1. MODULE: WIREGUARD SERVER (Clients & Site-to-Site)`);
@@ -3121,7 +3548,7 @@
 
       const lines = scriptText.split('\n');
       if (statsBadge) {
-        statsBadge.textContent = `${lines.length} строк (${activeCount} из 6 модулей)`;
+        statsBadge.textContent = `${lines.length} строк (${activeCount} из 7 модулей)`;
       }
 
       let gutterText = '';
