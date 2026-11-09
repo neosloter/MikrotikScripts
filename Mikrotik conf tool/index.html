@@ -233,7 +233,8 @@
             </div>
             <div>
               <label class="block text-xs font-medium text-slate-400 mb-1">Имя локального моста (Bridge)</label>
-              <input type="text" id="init_bridge_name" value="bridge-lan" class="form-input" oninput="syncInitialSetupToTabs(); updateScript()">
+              <input type="text" id="init_bridge_name" value="bridge-lan" class="form-input" oninput="syncInitialSetupToTabs();
+      validateWanStatic(); updateScript()">
               <span class="text-[10px] text-slate-500">Основной L2-мост для проводных и Wi-Fi клиентов</span>
             </div>
           </div>
@@ -241,13 +242,70 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-medium text-slate-400 mb-1">IP-адрес роутера и маска (LAN Subnet)</label>
-              <input type="text" id="init_lan_ip" value="192.168.88.1/24" class="form-input font-mono" oninput="calcLanPool(); syncInitialSetupToTabs(); updateScript()">
+              <input type="text" id="init_lan_ip" value="192.168.88.1/24" class="form-input font-mono" oninput="calcLanPool(); syncInitialSetupToTabs();
+      validateWanStatic(); updateScript()">
               <span class="text-[10px] text-slate-500">Например: 192.168.88.1/24 или 10.10.10.1/24</span>
             </div>
             <div>
               <label class="block text-xs font-medium text-slate-400 mb-1">LAN-порты в мосту (через запятую)</label>
               <input type="text" id="init_bridge_ports" value="ether2,ether3,ether4,ether5" class="form-input" oninput="updateScript()">
               <span class="text-[10px] text-slate-500">Физические порты, объединенные в свитч</span>
+            </div>
+          </div>
+
+          <!-- Interactive Subnet Calculator & Inspector Widget -->
+          <div id="lan_subnet_widget" class="p-3.5 bg-slate-900/80 rounded-xl border border-slate-800 space-y-3">
+            <div class="flex items-center justify-between flex-wrap gap-2">
+              <div class="flex items-center gap-2">
+                <span class="text-sm">🧮</span>
+                <span class="text-xs font-bold text-slate-200">Интерактивный калькулятор подсети</span>
+                <span id="subnet_status_badge" class="text-[10px] px-2 py-0.5 rounded font-mono bg-emerald-950 text-emerald-300 border border-emerald-800">✓ Валидная подсеть</span>
+              </div>
+              <!-- Quick prefix selector pills -->
+              <div class="flex items-center gap-1 text-[10px]">
+                <span class="text-slate-500 mr-1 hidden sm:inline">Пресеты маски:</span>
+                <button type="button" onclick="setLanPrefix(24)" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-mono transition">/24 (254)</button>
+                <button type="button" onclick="setLanPrefix(23)" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-mono transition">/23 (510)</button>
+                <button type="button" onclick="setLanPrefix(22)" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-mono transition">/22 (1022)</button>
+                <button type="button" onclick="setLanPrefix(16)" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-mono transition">/16 (65k)</button>
+              </div>
+            </div>
+
+            <!-- Error banner (hidden by default) -->
+            <div id="subnet_error_banner" class="hidden p-2.5 rounded-lg bg-rose-950/40 border border-rose-800/60 text-xs text-rose-300 flex items-start gap-2">
+              <span class="text-base leading-none">⚠️</span>
+              <span id="subnet_error_text">Неверный формат IP-адреса</span>
+            </div>
+
+            <!-- Parameters Grid -->
+            <div id="subnet_metrics_grid" class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs font-mono">
+              <div class="p-2 rounded-lg bg-slate-950/60 border border-slate-800/80">
+                <span class="text-[10px] text-slate-500 block font-sans">Сеть (Network ID)</span>
+                <span id="calc_net_id" class="text-cyan-300 font-semibold">192.168.88.0/24</span>
+              </div>
+              <div class="p-2 rounded-lg bg-slate-950/60 border border-slate-800/80">
+                <span class="text-[10px] text-slate-500 block font-sans">Сетевая маска (Mask)</span>
+                <span id="calc_netmask" class="text-slate-300">255.255.255.0</span>
+              </div>
+              <div class="p-2 rounded-lg bg-slate-950/60 border border-slate-800/80">
+                <span class="text-[10px] text-slate-500 block font-sans">Доступно хостов</span>
+                <span id="calc_hosts_count" class="text-emerald-400 font-semibold">254 хоста</span>
+              </div>
+              <div class="p-2 rounded-lg bg-slate-950/60 border border-slate-800/80">
+                <span class="text-[10px] text-slate-500 block font-sans">Широковещательный (Bcast)</span>
+                <span id="calc_broadcast" class="text-slate-300">192.168.88.255</span>
+              </div>
+            </div>
+
+            <div id="subnet_range_bar" class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 pt-1 border-t border-slate-800/70 text-xs">
+              <div class="flex items-center gap-2">
+                <span class="text-slate-400">Диапазон адресов:</span>
+                <span id="calc_host_range" class="font-mono text-cyan-300">192.168.88.1 — 192.168.88.254</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-slate-400">Рекомендуемый пул DHCP:</span>
+                <span id="calc_rec_pool" class="font-mono text-emerald-400">192.168.88.10-192.168.88.254</span>
+              </div>
             </div>
           </div>
         </div>
@@ -420,12 +478,14 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-medium text-slate-400 mb-1">Физический WAN-порт</label>
-              <input type="text" id="init_wan_iface" value="ether1" class="form-input font-mono" oninput="syncInitialSetupToTabs(); updateScript()">
+              <input type="text" id="init_wan_iface" value="ether1" class="form-input font-mono" oninput="syncInitialSetupToTabs();
+      validateWanStatic(); updateScript()">
               <span class="text-[10px] text-slate-500">Обычно ether1 или sfp-sfpplus1</span>
             </div>
             <div>
               <label class="block text-xs font-medium text-slate-400 mb-1">Тип интернет-подключения</label>
-              <select id="init_wan_proto" class="form-input text-xs" onchange="toggleWanProtoFields(); syncInitialSetupToTabs(); updateScript()">
+              <select id="init_wan_proto" class="form-input text-xs" onchange="toggleWanProtoFields(); syncInitialSetupToTabs();
+      validateWanStatic(); updateScript()">
                 <option value="dhcp" selected>DHCP-клиент (Динамический IP провайдера - IPoE)</option>
                 <option value="static">Статический IP (Ручной ввод данных договора)</option>
                 <option value="pppoe">PPPoE (Логин и пароль от провайдера)</option>
@@ -439,16 +499,20 @@
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
                 <label class="block text-xs font-medium text-slate-400 mb-1">Статический IP / Маска</label>
-                <input type="text" id="init_wan_static_ip" value="198.51.100.2/24" class="form-input text-xs font-mono" oninput="updateScript()">
+                <input type="text" id="init_wan_static_ip" value="198.51.100.2/24" class="form-input text-xs font-mono" oninput=" updateScript()">
               </div>
               <div>
                 <label class="block text-xs font-medium text-slate-400 mb-1">Основной шлюз (Gateway)</label>
-                <input type="text" id="init_wan_static_gw" value="198.51.100.1" class="form-input text-xs font-mono" oninput="updateScript()">
+                <input type="text" id="init_wan_static_gw" value="198.51.100.1" class="form-input text-xs font-mono" oninput=" updateScript()">
               </div>
               <div>
                 <label class="block text-xs font-medium text-slate-400 mb-1">DNS провайдера</label>
                 <input type="text" id="init_wan_static_dns" value="1.1.1.1,8.8.8.8" class="form-input text-xs font-mono" oninput="updateScript()">
               </div>
+            </div>
+            <div id="wan_static_warn_banner" class="hidden p-2.5 rounded-lg bg-amber-950/40 border border-amber-800/60 text-xs text-amber-300 flex items-start gap-2">
+              <span class="text-base leading-none">⚠️</span>
+              <span id="wan_static_warn_text">Проверка шлюза</span>
             </div>
           </div>
 
@@ -465,7 +529,8 @@
               </div>
               <div>
                 <label class="block text-xs font-medium text-slate-400 mb-1">Имя интерфейса</label>
-                <input type="text" id="init_wan_pppoe_name" value="pppoe-out1" class="form-input text-xs" oninput="syncInitialSetupToTabs(); updateScript()">
+                <input type="text" id="init_wan_pppoe_name" value="pppoe-out1" class="form-input text-xs" oninput="syncInitialSetupToTabs();
+      validateWanStatic(); updateScript()">
               </div>
             </div>
           </div>
@@ -2205,26 +2270,217 @@
       return `${netOctets.join('.')}/${mask}`;
     }
 
-    function calcLanPool() {
-      const lanIpInput = document.getElementById('init_lan_ip')?.value.trim() || '';
-      const match = lanIpInput.match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)\/(\d+)$/);
-      if (match) {
-        const oct1 = match[1];
-        const oct2 = match[2];
-        const oct3 = match[3];
-        const oct4 = match[4];
-        const prefix = parseInt(match[5], 10);
-        const poolInput = document.getElementById('init_dhcp_pool');
-        const dnsInput = document.getElementById('init_dhcp_dns');
-        if (prefix === 24) {
-          if (poolInput) poolInput.value = `${oct1}.${oct2}.${oct3}.10-${oct1}.${oct2}.${oct3}.254`;
-          if (dnsInput) dnsInput.value = `${oct1}.${oct2}.${oct3}.${oct4},1.1.1.1`;
-        } else if (prefix === 16) {
-          if (poolInput) poolInput.value = `${oct1}.${oct2}.1.10-${oct1}.${oct2}.254.254`;
-          if (dnsInput) dnsInput.value = `${oct1}.${oct2}.${oct3}.${oct4},1.1.1.1`;
-        } else {
-          if (dnsInput) dnsInput.value = `${oct1}.${oct2}.${oct3}.${oct4},1.1.1.1`;
+        // =========================================================
+    // Pure JS IPv4 CIDR Calculator & Validation Engine
+    // =========================================================
+    function parseIPv4CIDR(str) {
+      if (!str || typeof str !== 'string') {
+        return { valid: false, error: 'Введите IP-адрес с маской (например: 192.168.88.1/24)' };
+      }
+      const parts = str.trim().split('/');
+      if (parts.length !== 2) {
+        return { valid: false, error: 'Укажите маску через слэш (например: /24, /23, /16)' };
+      }
+      const ipStr = parts[0].trim();
+      const maskStr = parts[1].trim();
+
+      if (!/^\d+$/.test(maskStr)) {
+        return { valid: false, error: 'Маска должна быть целым числом' };
+      }
+      const prefix = parseInt(maskStr, 10);
+      if (prefix < 1 || prefix > 32) {
+        return { valid: false, error: 'Префикс маски должен быть в диапазоне от /1 до /32' };
+      }
+
+      const octets = ipStr.split('.');
+      if (octets.length !== 4) {
+        return { valid: false, error: 'IP-адрес должен содержать ровно 4 октета (например: 192.168.88.1)' };
+      }
+
+      const nums = [];
+      for (let i = 0; i < 4; i++) {
+        if (!/^\d+$/.test(octets[i])) {
+          return { valid: false, error: `Октет "${octets[i]}" не является числом` };
         }
+        const n = parseInt(octets[i], 10);
+        if (n < 0 || n > 255) {
+          return { valid: false, error: `Октет ${n} превышает допустимый диапазон 0..255` };
+        }
+        nums.push(n);
+      }
+
+      const ipInt = ((nums[0] << 24) | (nums[1] << 16) | (nums[2] << 8) | nums[3]) >>> 0;
+      const maskInt = prefix === 0 ? 0 : ((~0 << (32 - prefix)) >>> 0);
+      const netInt = (ipInt & maskInt) >>> 0;
+      const bcastInt = (netInt | (~maskInt >>> 0)) >>> 0;
+
+      const intToIp = (val) => `${(val >>> 24) & 255}.${(val >>> 16) & 255}.${(val >>> 8) & 255}.${val & 255}`;
+
+      const totalHosts = prefix === 32 ? 1 : (prefix === 31 ? 2 : Math.pow(2, 32 - prefix) - 2);
+      const firstHostInt = prefix >= 31 ? netInt : netInt + 1;
+      const lastHostInt = prefix >= 31 ? bcastInt : bcastInt - 1;
+
+      // Recommended DHCP pool calculation
+      let poolStartInt = firstHostInt;
+      let poolEndInt = lastHostInt;
+      if (prefix <= 24 && totalHosts >= 20) {
+        poolStartInt = Math.min(lastHostInt, netInt + 10);
+        poolEndInt = lastHostInt;
+      } else if (prefix < 24 && totalHosts > 254) {
+        poolStartInt = ((netInt & 0xFFFF0000) | (1 << 8) | 10) >>> 0;
+        poolEndInt = ((bcastInt & 0xFFFF0000) | (254 << 8) | 254) >>> 0;
+      }
+
+      // RFC1918 Private Address check
+      const isRfc1918 = (nums[0] === 10) ||
+                        (nums[0] === 172 && nums[1] >= 16 && nums[1] <= 31) ||
+                        (nums[0] === 192 && nums[1] === 168);
+
+      return {
+        valid: true,
+        ip: ipStr,
+        prefix,
+        network: intToIp(netInt) + '/' + prefix,
+        networkOnly: intToIp(netInt),
+        netmask: intToIp(maskInt),
+        broadcast: intToIp(bcastInt),
+        totalHosts,
+        firstHost: intToIp(firstHostInt),
+        lastHost: intToIp(lastHostInt),
+        recPool: `${intToIp(poolStartInt)}-${intToIp(poolEndInt)}`,
+        isRfc1918,
+        ipInt,
+        netInt,
+        bcastInt
+      };
+    }
+
+    // Interactive Subnet Calculator
+    function calcLanPool() {
+      const lanInput = document.getElementById('init_lan_ip');
+      if (!lanInput) return;
+      const val = lanInput.value.trim();
+
+      const badge = document.getElementById('subnet_status_badge');
+      const errBanner = document.getElementById('subnet_error_banner');
+      const errText = document.getElementById('subnet_error_text');
+      const metricsGrid = document.getElementById('subnet_metrics_grid');
+      const rangeBar = document.getElementById('subnet_range_bar');
+
+      const res = parseIPv4CIDR(val);
+
+      if (!res.valid) {
+        lanInput.classList.add('border-rose-500', 'bg-rose-950/20');
+        lanInput.classList.remove('border-slate-800', 'focus:border-cyan-500');
+        if (badge) {
+          badge.className = 'text-[10px] px-2 py-0.5 rounded font-mono bg-rose-950 text-rose-300 border border-rose-800';
+          badge.textContent = '✕ Ошибка ввода';
+        }
+        if (errBanner && errText) {
+          errBanner.classList.remove('hidden');
+          errText.textContent = res.error;
+        }
+        if (metricsGrid) metricsGrid.classList.add('opacity-40');
+        if (rangeBar) rangeBar.classList.add('opacity-40');
+        return;
+      }
+
+      // Valid state
+      lanInput.classList.remove('border-rose-500', 'bg-rose-950/20');
+      lanInput.classList.add('border-slate-800');
+      if (badge) {
+        if (!res.isRfc1918) {
+          badge.className = 'text-[10px] px-2 py-0.5 rounded font-mono bg-amber-950 text-amber-300 border border-amber-800';
+          badge.textContent = '⚠️ Публичный IP (не RFC1918)';
+        } else {
+          badge.className = 'text-[10px] px-2 py-0.5 rounded font-mono bg-emerald-950 text-emerald-300 border border-emerald-800';
+          badge.textContent = '✓ Валидная подсеть';
+        }
+      }
+      if (errBanner) errBanner.classList.add('hidden');
+      if (metricsGrid) metricsGrid.classList.remove('opacity-40');
+      if (rangeBar) rangeBar.classList.remove('opacity-40');
+
+      // Populate metrics
+      const netId = document.getElementById('calc_net_id');
+      const netmask = document.getElementById('calc_netmask');
+      const hostsCount = document.getElementById('calc_hosts_count');
+      const broadcast = document.getElementById('calc_broadcast');
+      const hostRange = document.getElementById('calc_host_range');
+      const recPool = document.getElementById('calc_rec_pool');
+
+      if (netId) netId.textContent = res.network;
+      if (netmask) netmask.textContent = res.netmask;
+      if (hostsCount) hostsCount.textContent = `${res.totalHosts.toLocaleString()} хостов`;
+      if (broadcast) broadcast.textContent = res.broadcast;
+      if (hostRange) hostRange.textContent = `${res.firstHost} — ${res.lastHost}`;
+      if (recPool) recPool.textContent = res.recPool;
+
+      // Update DHCP pool and DNS automatically
+      const poolInput = document.getElementById('init_dhcp_pool');
+      const dnsInput = document.getElementById('init_dhcp_dns');
+      if (poolInput) poolInput.value = res.recPool;
+      if (dnsInput) dnsInput.value = `${res.ip},1.1.1.1`;
+    }
+
+    function setLanPrefix(newPrefix) {
+      const input = document.getElementById('init_lan_ip');
+      if (!input) return;
+      const parts = input.value.trim().split('/');
+      const ipOnly = parts[0] || '192.168.88.1';
+      input.value = `${ipOnly}/${newPrefix}`;
+      calcLanPool();
+      syncInitialSetupToTabs();
+      validateWanStatic();
+      updateScript();
+    }
+
+    function validateWanStatic() {
+      const ipInput = document.getElementById('init_wan_static_ip');
+      const gwInput = document.getElementById('init_wan_static_gw');
+      const banner = document.getElementById('wan_static_warn_banner');
+      const bannerText = document.getElementById('wan_static_warn_text');
+      if (!ipInput || !gwInput) return;
+
+      const ipVal = ipInput.value.trim();
+      const gwVal = gwInput.value.trim();
+
+      const ipRes = parseIPv4CIDR(ipVal);
+      if (!ipRes.valid) {
+        ipInput.classList.add('border-rose-500');
+        if (banner && bannerText) {
+          banner.classList.remove('hidden');
+          bannerText.textContent = `WAN IP: ${ipRes.error}`;
+        }
+        return;
+      }
+      ipInput.classList.remove('border-rose-500');
+
+      // Validate gateway
+      const gwOctets = gwVal.split('.');
+      let gwValid = gwOctets.length === 4 && gwOctets.every(o => /^\d+$/.test(o) && parseInt(o, 10) >= 0 && parseInt(o, 10) <= 255);
+
+      if (!gwValid) {
+        gwInput.classList.add('border-rose-500');
+        if (banner && bannerText) {
+          banner.classList.remove('hidden');
+          bannerText.textContent = `Шлюз должен быть валидным IPv4 адресом (например, 198.51.100.1)`;
+        }
+        return;
+      }
+
+      const gwInt = ((parseInt(gwOctets[0], 10) << 24) | (parseInt(gwOctets[1], 10) << 16) | (parseInt(gwOctets[2], 10) << 8) | parseInt(gwOctets[3], 10)) >>> 0;
+
+      // Check if gateway is inside WAN subnet
+      if (gwInt < ipRes.netInt || gwInt > ipRes.bcastInt) {
+        gwInput.classList.add('border-amber-500');
+        if (banner && bannerText) {
+          banner.classList.remove('hidden');
+          bannerText.textContent = `⚠️ Предупреждение: Шлюз ${gwVal} находится вне подсети WAN (${ipRes.network})! Маршрут может быть недостижим.`;
+        }
+      } else {
+        gwInput.classList.remove('border-rose-500', 'border-amber-500');
+        if (banner) banner.classList.add('hidden');
       }
     }
 
@@ -3740,6 +3996,7 @@
     // Init
     window.addEventListener('DOMContentLoaded', () => {
       syncInitialSetupToTabs();
+      validateWanStatic();
       toggleWanProtoFields();
       toggleMacCloneField();
       toggleWifiFields();
