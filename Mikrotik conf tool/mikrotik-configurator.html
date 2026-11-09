@@ -2692,11 +2692,12 @@
       // 0. Module selection state
       const modInit = document.getElementById('mod_enable_init')?.checked ?? true;
       const modFirewall = document.getElementById('mod_enable_firewall')?.checked ?? true;
+      const modRouting = document.getElementById('mod_enable_routing')?.checked ?? true;
       const modWireguard = document.getElementById('mod_enable_wireguard')?.checked ?? true;
       const modTelegram = document.getElementById('mod_enable_telegram')?.checked ?? true;
       const modDefense = document.getElementById('mod_enable_defense')?.checked ?? true;
       const modSystem = document.getElementById('mod_enable_system')?.checked ?? true;
-      const activeCount = [modInit, modFirewall, modWireguard, modTelegram, modDefense, modSystem].filter(Boolean).length;
+      const activeCount = [modInit, modFirewall, modRouting, modWireguard, modTelegram, modDefense, modSystem].filter(Boolean).length;
 
       // Module 0: Initial Setup Baseline params
       const initIdentity = document.getElementById('init_identity')?.value.trim() || 'MikroTik-Router';
@@ -2781,19 +2782,33 @@
       const wgNatClients = document.getElementById('wg_nat_clients')?.checked;
       const wgSubnet = wgTunnelIp.replace(/\.\d+\/\d+$/, '.0/24');
 
-      let rsc = [];
+      window.sectionScripts = {};
+      let currentSection = null;
+      const rsc = [];
+      const origPush = rsc.push.bind(rsc);
+      rsc.push = function(...args) {
+        origPush(...args);
+        if (currentSection) {
+          if (!window.sectionScripts[currentSection]) window.sectionScripts[currentSection] = [];
+          window.sectionScripts[currentSection].push(...args);
+        }
+      };
+      function setSec(name) {
+        currentSection = name;
+      }
+
       rsc.push(`# =====================================================================`);
       rsc.push(`# MikroTik RouterOS v7 - Production Network Configuration`);
       rsc.push(`# Architecture: vasilevkirill.ru & MikroTik Enterprise Best Practices`);
       rsc.push(`# Generated: ${new Date().toISOString().replace('T', ' ').substring(0, 19)} UTC`);
-      rsc.push(`# Active Modules (${activeCount}/6): ${[
+      rsc.push(`# Active Modules (${activeCount}/7): ${[
         modInit ? '0.Baseline' : '',
         modFirewall ? '1.Firewall' : '',
         modRouting ? '2.DualWAN&Mangle' : '',
-        modWireguard ? '2.WireGuard' : '',
-        modTelegram ? '3.Telegram' : '',
-        modDefense ? '4.Defense' : '',
-        modSystem ? '5.System&DoH' : ''
+        modWireguard ? '3.WireGuard' : '',
+        modTelegram ? '4.Telegram' : '',
+        modDefense ? '5.Defense' : '',
+        modSystem ? '6.System&DoH' : ''
       ].filter(Boolean).join(', ') || 'None'}`);
       rsc.push(`# =====================================================================\n`);
 
