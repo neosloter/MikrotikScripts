@@ -444,7 +444,7 @@ fi
 log_info "Unmounting CHR image..."
 sync
 umount /mnt || {
-    sleep 2
+    read -t 2 _d 2>/dev/null || true
     umount -l /mnt || true
 }
 if [ -n "${LOOP_DEVICE:-}" ]; then
@@ -452,15 +452,27 @@ if [ -n "${LOOP_DEVICE:-}" ]; then
     LOOP_DEVICE=""
 fi
 
+# Enable SysRq in kernel before overwriting disk
+echo 1 > /proc/sys/kernel/sysrq 2>/dev/null || true
+
+# Clean up temporary files before writing image (while filesystem binaries still exist)
+log_info "Cleaning up temporary installation files..."
+rm -f chr-*.*.* chr.img.zip chr.qcow2 chr-efi.qcow2 2>/dev/null || true
+rm -rf /tmp/chr-bios /tmp/chr-efi 2>/dev/null || true
+
+# Disable EXIT/TERM trap: once $DISK_DEVICE is overwritten, binaries (rm, umount, etc.) won't exist
+trap - EXIT INT TERM
+
 # 11. Write Image to Target Disk
-log_info "Writing image to disk ($DISK_DEVICE). This may take several minutes..."
+log_info "Writing image to disk ($DISK_DEVICE)..."
 dd if=chr.img of="$DISK_DEVICE" bs=4M oflag=sync status=progress || {
-    log_error "Failed to write image to disk"
+    echo -e "${RED}[ERROR] Failed to write image to disk${NC}"
     exit 1
 }
-sync
 
-# 12. Completion & System Reboot
+# 12. Completion & Immediate Kernel SysRq Reboot
+# NOTE: Do NOT call external binaries (sleep, sync, reboot) here! The underlying filesystem has been overwritten by RouterOS.
+# Only shell built-ins (echo, printf, read) and kernel SysRq triggers must be used.
 echo
 echo -e "${GREEN}=================================================================${NC}"
 echo -e "${GREEN}      RouterOS CHR ${ROS_VERSION} Installation Completed!       ${NC}"
@@ -478,8 +490,13 @@ printf "  %-20s: %s\n" "WinBox Access" "Port 8291 (Default)"
 printf "  %-20s: %s\n" "SSH Access" "$([ "$ENABLE_SSH" = true ] && echo "Port 22 (Default)" || echo "Disabled")"
 echo -e "${GREEN}=================================================================${NC}"
 echo
-log_info "System will automatically reboot into RouterOS CHR in 5 seconds..."
-sleep 5
+echo -e "${GREEN}[INFO] Rebooting into RouterOS CHR now...${NC}"
 
-echo 1 > /proc/sys/kernel/sysrq
+# Shell builtin pause (3 seconds, does NOT invoke /bin/sleep)
+read -t 3 _dummy 2>/dev/null || true
+
+# Kernel SysRq Sync, Remount-RO and Reboot (handled directly by Linux kernel)
+echo 1 > /proc/sys/kernel/sysrq 2>/dev/null || true
+echo s > /proc/sysrq-trigger 2>/dev/null || true
+echo u > /proc/sysrq-trigger 2>/dev/null || true
 echo b > /proc/sysrq-trigger
