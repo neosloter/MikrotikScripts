@@ -10,10 +10,11 @@
 Автоматизированный скрипт установки **MikroTik RouterOS Cloud Hosted Router (CHR)** на любые Linux VDS/VPS (Debian, Ubuntu, CentOS, AlmaLinux, Rocky Linux, Arch Linux).
 
 **Особенности:**
-* Поддержка VDS со шлюзом `10.0.0.1` (Hetzner Cloud и аналогичные point-to-point /32 сети).
+* Универсальная автонастройка сети: Static IP (стандартные подсети и /32 point-to-point вроде Hetzner/OVH) или DHCP.
+* Сводка всех предстоящих настроек перед подтверждением и записью на диск.
 * Поддержка BIOS Legacy и UEFI boot mode.
 * Выбор версии RouterOS и установка пакета `container`.
-* Первичная настройка безопасности и пароля администратора.
+* Первичная настройка безопасности (пароль admin, выбор SSH, WinBox, отключение уязвимых служб).
 
 **Быстрый запуск:**
 ```bash
